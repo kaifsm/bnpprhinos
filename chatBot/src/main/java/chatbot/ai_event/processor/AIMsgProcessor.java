@@ -106,7 +106,7 @@ public class AIMsgProcessor implements Runnable {
 		// Check if room already exist
 		if (RoomUtil.getRooms().containsKey(roomKey)) {
 			System.out.println("Update existing room " + roomKey);
-			RoomInfo roomInfo = RoomUtil.getRooms().get(roomName).getRoomInfo();
+			RoomInfo roomInfo = RoomUtil.getRooms().get(roomKey).getRoomInfo();
 			OutboundMessage message = new OutboundMessage();
 			message.setMessage("New occurence at " + incidentNode.get("timestamp"));
 			RoomUtil.getBotClient().getMessagesClient().sendMessage(roomInfo.getRoomSystemInfo().getId(), message);

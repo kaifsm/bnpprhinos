@@ -2,8 +2,10 @@ package chatbot.ai_event.processor.datamodel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Consumer;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,18 +35,22 @@ public class RoomUtil {
 
 	public static void closeRoom(String streamId) throws SymClientException {
 		
+		//Remove room from the bot cache
+		Iterator<Entry<String, RoomWrapper>> itr = rooms.entrySet().iterator();
+		while (itr.hasNext()) {
+			Entry<String, RoomWrapper> roomEntry = itr.next();
+			RoomWrapper room = roomEntry.getValue();
+			//if (room.getRoomInfo().getRoomSystemInfo().getId().equals(streamId)) {
+			//	itr.remove();
+			//}
+		}
+		
 		//Deactivate in Symphony
 		OutboundMessage messageOut = new OutboundMessage();
 		messageOut.setMessage("Closing room now");
 		botClient.getMessagesClient().sendMessage(streamId, messageOut);
 		botClient.getStreamsClient().deactivateRoom(streamId);
 		
-		//Remove room from the bot cache
-		for (RoomWrapper room : rooms.values()) {
-			if (room.getRoomInfo().getRoomSystemInfo().getId().equals(streamId)) {
-				rooms.remove(room.getRoomKey(), room);
-			}
-		}
 	}
 
 	static List<String> mergingCriterias = new ArrayList<String>();

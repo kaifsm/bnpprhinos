@@ -18,9 +18,9 @@
 			"Notification filter": {
 				"impacted systems": [
 					"OMS",
-					"FIX Gateway",
-					"Market Access",
-					"MO agency"
+					"FIXGateway",
+					"MarketAccess",
+					"AlgoEngine"
 				],
 				"impacted flows": [
 					"Cash"
@@ -32,7 +32,22 @@
 			"Notification filter": {
 				"issue type": [
 					"NetworkDisconnection",
-					"ServerDown"
+					"RepeatedRejects"
+				],
+				"impacted systems": [
+					"MarketAccess"
+				]
+			}
+		},
+		{
+			"Profile name": "Market Data Team",
+			"Notification filter": {
+				"issue type": [
+					"MarketDataSlowness",
+					"MarketDataUnavailable"
+				],
+				"impacted systems": [
+					"MarketAccess"
 				]
 			}
 		},
@@ -94,7 +109,7 @@
 			"Name": "Kath",
 			"Email": "katherine.sung@asia.bnpparibas.com",
 			"Profiles": [
-				"APS Agency Cash"
+				"Market Data Team"
 			],
 			"Notifications": "on"
 		},
