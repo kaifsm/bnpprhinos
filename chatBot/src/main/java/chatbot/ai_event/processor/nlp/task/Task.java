@@ -10,6 +10,10 @@ public abstract class Task {
 	
 	protected List<String> systems_ = new ArrayList<>();
 	
+	public Task() {
+		System.out.println("Task created - " + this.getClass());
+	}
+	
 	public void addStreamId(String streamId) {
 		streamId_ = streamId;	
 	}

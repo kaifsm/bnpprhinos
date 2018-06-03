@@ -84,13 +84,8 @@ public class RhinosNLP {
 	    props.setProperty("annotators", "tokenize, ssplit, pos, lemma, ner, parse, dcoref");
 	    
 	    pipeline_ = new StanfordCoreNLP(props);
-	    
-		  // patterns=download_log
-		  //download_log.verbs=download,get
-		  //download_log.nouns=logs
-		  //download_log.systems=oms,ems,fixgateway,marketgateway
-	    
-	    URL url = getClass().getResource("nlp_pattern.properties");
+
+	    URL url = getClass().getClassLoader().getResource("nlp_pattern.properties");
 	    InputStream in = url.openStream();
 	    
 	    Properties patternProps = new Properties();
@@ -144,6 +139,7 @@ public class RhinosNLP {
 	            String ne = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);
 	
 	            logger.debug(String.format("Print: word: [%s] pos: [%s] ne: [%s]", word, pos, ne));
+	            System.out.println(String.format("Print: word: [%s] pos: [%s] ne: [%s]", word, pos, ne));
 	            
 	            if (EPartOfSpeech.VerbBaseForm.equals(EPartOfSpeech.parse(pos))) {
             		verbs.add(word);
