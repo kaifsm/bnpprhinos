@@ -48,6 +48,7 @@ class MyFrame extends JFrame
 	    static JTextField hostNameTextField 		= new JTextField(TEXT_FIELD_SIZE);
 	    static JTextField impactedMarketsTextField 	= new JTextField(TEXT_FIELD_SIZE);
 	    static JTextField impactedFlowsTextField 	= new JTextField(TEXT_FIELD_SIZE);
+	    static JTextField impactedClientsTextField 	= new JTextField(TEXT_FIELD_SIZE);
 	    static JTextField originTextField 			= new JTextField(TEXT_FIELD_SIZE);
 	    static JTextField flowTypeTextField 		= new JTextField(TEXT_FIELD_SIZE);
 	    static JTextField pnlTextField 				= new JTextField(TEXT_FIELD_SIZE);
@@ -58,6 +59,7 @@ class MyFrame extends JFrame
 		static JLabel hostNameLabel   				= new JLabel("Host Name: ");
 		static JLabel impactedMarketsLabel 			= new JLabel("Impacted Markets :");
 		static JLabel impactedFlowsLabel 			= new JLabel("Impacted Flows: ");
+		static JLabel impactedClientsLabel 			= new JLabel("Impacted Clients: ");
 		static JLabel originLabel 					= new JLabel("Issue Origin: ");
 		static JLabel flowTypeLabel 				= new JLabel("Flow Type: ");
 		static JLabel pnlLabel 						= new JLabel("PNL: ");
@@ -218,6 +220,9 @@ class MyFrame extends JFrame
 	      myPanel.add(EventInfo.impactedFlowsLabel);
 	      myPanel.add(EventInfo.impactedFlowsTextField);
 	      myPanel.add(Box.createVerticalStrut(VERTICAL_STRUT_LENGTH));
+	      myPanel.add(EventInfo.impactedClientsLabel);
+	      myPanel.add(EventInfo.impactedClientsTextField);	      
+	      myPanel.add(Box.createVerticalStrut(VERTICAL_STRUT_LENGTH));
 	      myPanel.add(EventInfo.originLabel);
 	      myPanel.add(EventInfo.originTextField);
 	      myPanel.add(Box.createVerticalStrut(VERTICAL_STRUT_LENGTH));
@@ -240,6 +245,7 @@ class MyFrame extends JFrame
 		    	  incidentJsonObject.put( JsonKeys.hostnameKey, EventInfo.hostNameTextField.getText() );
 		    	  incidentJsonObject.put( JsonKeys.impactedMarketsKey, EventInfo.impactedMarketsTextField.getText() );
 		    	  incidentJsonObject.put( JsonKeys.impactedFlowsKey, EventInfo.impactedFlowsTextField.getText() );
+		    	  incidentJsonObject.put( JsonKeys.impactedClientsKey, EventInfo.impactedClientsTextField.getText() );
 		    	  incidentJsonObject.put( JsonKeys.originKey, EventInfo.originTextField.getText() );
 		    	  incidentJsonObject.put( JsonKeys.flowTypeKey, EventInfo.flowTypeTextField.getText() );
 		    	  incidentJsonObject.put( JsonKeys.pnlKey, EventInfo.pnlTextField.getText() );
