@@ -1,22 +1,26 @@
 package chatbot.ai_event.processor.datamodel;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
-import chatbot.ai_event.processor.AIMsgProcessor;
 import clients.SymBotClient;
 import exceptions.SymClientException;
 import model.OutboundMessage;
+import model.RoomInfo;
 
 public class RoomUtil {
 	
 	static SymBotClient botClient;
+	static Map<String, RoomInfo> rooms = new HashMap<String, RoomInfo>();
+
+	public static Map<String, RoomInfo> getRooms() {
+		return rooms;
+	}
 
 	public static SymBotClient getBotClient() {
 		return botClient;
@@ -24,6 +28,11 @@ public class RoomUtil {
 
 	public static void setBotClient(SymBotClient botClient) {
 		RoomUtil.botClient = botClient;
+	}
+	
+	public static void closeRoom (String streamId)
+	{
+		
 	}
 
 	static List<String> mergingCriterias = new ArrayList<String>();
