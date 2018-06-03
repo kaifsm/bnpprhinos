@@ -34,18 +34,19 @@ public class Rhinos {
 
 		try {
 			connectSymphony();
+
+			new Thread(() -> {
+				post("/rhinos/issues", (req, res) -> {
+					JsonNode issue = JsonLoader.fromString(res.body());
+					AIMsgProcessor.messageQueue.put(issue);
+					res.status(201);
+					return null;
+				});
+			}).start();
+
 			// Main thread process AI messages
 			(new AIMsgProcessor()).run();
-			
-					new Thread(() -> {
-			post("/rhinos/issues", (req, res) -> {
-				JsonNode issue = JsonLoader.fromString(res.body());
-				AIMsgProcessor.messageQueue.put(issue);
-				res.status(201);
-				return null;
-			});
-		}).start();
-			
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
