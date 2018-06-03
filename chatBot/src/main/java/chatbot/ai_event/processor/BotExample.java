@@ -87,7 +87,7 @@ public class BotExample {
     public BotExample() {
         URL url = getClass().getClassLoader().getResource("kathBotConfig.json");
         SymConfigLoader configLoader = new SymConfigLoader();
-        SymConfig config = configLoader.loadFromFile(url.getPath());
+        SymConfig config = configLoader.loadFromFile("C:\\MisterQ\\java\\rhinos\\src\\main\\resources\\RhinosSymphonyConfig.json");
         SymBotAuth botAuth = new SymBotAuth(config);
         botAuth.authenticate();
         SymBotClient botClient = SymBotClient.initBot(config, botAuth);

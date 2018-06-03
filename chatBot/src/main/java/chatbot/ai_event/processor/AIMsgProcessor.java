@@ -16,6 +16,7 @@ import com.github.fge.jackson.JsonLoader;
 import chatbot.ai_event.processor.datamodel.Filter;
 import chatbot.ai_event.processor.datamodel.Profile;
 import chatbot.ai_event.processor.datamodel.RoomUtil;
+import chatbot.ai_event.processor.datamodel.RoomWrapper;
 import chatbot.ai_event.processor.datamodel.User;
 import exceptions.SymClientException;
 import model.OutboundMessage;
@@ -26,7 +27,6 @@ import model.UserInfo;
 public class AIMsgProcessor implements Runnable {
 
 	static LinkedBlockingQueue<JsonNode> messageQueue = new LinkedBlockingQueue<JsonNode>();
-	static Map<String, RoomInfo> rooms = new HashMap<String, RoomInfo>();
 
 	public static void main(String[] args) {
 		AIMsgProcessor app = new AIMsgProcessor();
@@ -73,12 +73,12 @@ public class AIMsgProcessor implements Runnable {
 		JsonNode allNodes = JsonLoader.fromURL(url);
 
 		// load filter criterias
-		if (!allNodes.has("Filter criterias")) {
-			System.out.println("Mssing Filter Criterias !!!");
-			throw new Exception("Missing Filter Criterias !!!");
+		if (!allNodes.has("Incident attributes")) {
+			System.out.println("Mssing Incident attributes !!!");
+			throw new Exception("Missing Incident attributes !!!");
 		}
-		Consumer<JsonNode> criteriaConsumer = (JsonNode criteriaNode) -> Filter.addCriteria(criteriaNode.asText());
-		allNodes.get("Filter criterias").forEach(criteriaConsumer);
+		Consumer<JsonNode> criteriaConsumer = (JsonNode criteriaNode) -> Filter.addIncidentAttribute(criteriaNode.asText());
+		allNodes.get("Incident attributes").forEach(criteriaConsumer);
 
 		// load Profiles
 		Consumer<JsonNode> profileConsumer = (JsonNode profileNode) -> Profile.addProfile(new Profile(profileNode));
@@ -100,11 +100,12 @@ public class AIMsgProcessor implements Runnable {
 	void processIncident(JsonNode incidentNode) throws SymClientException {
 
 		System.out.println("Process issue " + incidentNode.get("issue type"));
-		String roomName = RoomUtil.getRoomName(incidentNode);
+		String roomKey = RoomUtil.getRoomKey(incidentNode);
+		String roomName = "Alert " + roomKey;
 
 		// Check if room already exist
-		if (rooms.containsKey(roomName)) {
-			RoomInfo roomInfo = rooms.get(roomName);
+		if (RoomUtil.getRooms().containsKey(roomKey)) {
+			RoomInfo roomInfo = RoomUtil.getRooms().get(roomName).getRoomInfo();
 			OutboundMessage message = new OutboundMessage();
 			message.setMessage("New occurence at " + incidentNode.get("timestamp"));
 			RoomUtil.getBotClient().getMessagesClient().sendMessage(roomInfo.getRoomSystemInfo().getId(), message);
@@ -126,7 +127,7 @@ public class AIMsgProcessor implements Runnable {
 		room.setPublic(true);
 		room.setViewHistory(true);
 		RoomInfo roomInfo = RoomUtil.getBotClient().getStreamsClient().createRoom(room);
-		rooms.put(roomName, roomInfo);
+		RoomUtil.getRooms().put(roomKey, new RoomWrapper(roomInfo, incidentNode));
 		if (roomInfo == null) {
 			System.out.println("Failed to create room!!");
 			return;
