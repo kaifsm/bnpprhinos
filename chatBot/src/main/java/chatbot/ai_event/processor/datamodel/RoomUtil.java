@@ -27,12 +27,24 @@ public class RoomUtil {
 		return botClient;
 	}
 
-	public static void setBotClient(SymBotClient botClient) {
-		RoomUtil.botClient = botClient;
+	public static void setBotClient(SymBotClient botClient_) {
+		botClient = botClient_;
 	}
 
-	public static void closeRoom(String streamId) {
-
+	public static void closeRoom(String streamId) throws SymClientException {
+		
+		//Deactivate in Symphony
+		OutboundMessage messageOut = new OutboundMessage();
+		messageOut.setMessage("Closing room now");
+		botClient.getMessagesClient().sendMessage(streamId, messageOut);
+		botClient.getStreamsClient().deactivateRoom(streamId);
+		
+		//Remove room from the bot cache
+		for (RoomWrapper room : rooms.values()) {
+			if (room.getRoomInfo().getRoomSystemInfo().getId().equals(streamId)) {
+				rooms.remove(room.getRoomKey(), room);
+			}
+		}
 	}
 
 	static List<String> mergingCriterias = new ArrayList<String>();

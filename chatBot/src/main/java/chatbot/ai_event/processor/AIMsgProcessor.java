@@ -127,7 +127,7 @@ public class AIMsgProcessor implements Runnable {
 		room.setPublic(true);
 		room.setViewHistory(true);
 		RoomInfo roomInfo = RoomUtil.getBotClient().getStreamsClient().createRoom(room);
-		RoomUtil.getRooms().put(roomKey, new RoomWrapper(roomInfo, incidentNode));
+		RoomUtil.getRooms().put(roomKey, new RoomWrapper(roomInfo, incidentNode, roomKey));
 		if (roomInfo == null) {
 			System.out.println("Failed to create room!!");
 			return;

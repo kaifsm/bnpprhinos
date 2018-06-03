@@ -19,13 +19,19 @@ public class RoomWrapper {
 		this.incidentNode = incidentNode;
 	}
 	
-	public RoomWrapper(RoomInfo roomInfo, JsonNode incidentNode) {
+	public String getRoomKey() {
+		return roomKey;
+	}
+	
+	public RoomWrapper(RoomInfo roomInfo, JsonNode incidentNode, String roomKey) {
 		super();
 		this.roomInfo = roomInfo;
 		this.incidentNode = incidentNode;
+		this.roomKey = roomKey;
 	}
 
 	RoomInfo roomInfo;
 	JsonNode incidentNode;
+	String roomKey;
 
 }
