@@ -73,12 +73,12 @@ public class AIMsgProcessor implements Runnable {
 		JsonNode allNodes = JsonLoader.fromURL(url);
 
 		// load filter criterias
-		if (!allNodes.has("Filter criterias")) {
-			System.out.println("Mssing Filter Criterias !!!");
-			throw new Exception("Missing Filter Criterias !!!");
+		if (!allNodes.has("Incident attributes")) {
+			System.out.println("Mssing Incident attributes !!!");
+			throw new Exception("Missing Incident attributes !!!");
 		}
-		Consumer<JsonNode> criteriaConsumer = (JsonNode criteriaNode) -> Filter.addCriteria(criteriaNode.asText());
-		allNodes.get("Filter criterias").forEach(criteriaConsumer);
+		Consumer<JsonNode> criteriaConsumer = (JsonNode criteriaNode) -> Filter.addIncidentAttribute(criteriaNode.asText());
+		allNodes.get("Incident attributes").forEach(criteriaConsumer);
 
 		// load Profiles
 		Consumer<JsonNode> profileConsumer = (JsonNode profileNode) -> Profile.addProfile(new Profile(profileNode));
@@ -100,10 +100,11 @@ public class AIMsgProcessor implements Runnable {
 	void processIncident(JsonNode incidentNode) throws SymClientException {
 
 		System.out.println("Process issue " + incidentNode.get("issue type"));
-		String roomName = "Alert " + RoomUtil.getRoomKey(incidentNode);
+		String roomKey = RoomUtil.getRoomKey(incidentNode);
+		String roomName = "Alert " + roomKey;
 
 		// Check if room already exist
-		if (RoomUtil.getRooms().containsKey(roomName)) {
+		if (RoomUtil.getRooms().containsKey(roomKey)) {
 			RoomInfo roomInfo = RoomUtil.getRooms().get(roomName).getRoomInfo();
 			OutboundMessage message = new OutboundMessage();
 			message.setMessage("New occurence at " + incidentNode.get("timestamp"));
@@ -126,7 +127,7 @@ public class AIMsgProcessor implements Runnable {
 		room.setPublic(true);
 		room.setViewHistory(true);
 		RoomInfo roomInfo = RoomUtil.getBotClient().getStreamsClient().createRoom(room);
-		RoomUtil.getRooms().put(roomName, new RoomWrapper(roomInfo, incidentNode));
+		RoomUtil.getRooms().put(roomKey, new RoomWrapper(roomInfo, incidentNode, roomKey));
 		if (roomInfo == null) {
 			System.out.println("Failed to create room!!");
 			return;

@@ -1,37 +1,155 @@
 package chatbot.ai_event.processor;
+
 import authentication.SymBotAuth;
+import chatbot.ai_event.processor.datamodel.RoomUtil;
+import chatbot.ai_event.processor.nlp.RhinosNLP;
 import clients.SymBotClient;
 import configuration.SymConfig;
 import configuration.SymConfigLoader;
+import exceptions.SymClientException;
 import listeners.IMListener;
 import listeners.RoomListener;
 import model.*;
+import model.events.RoomCreated;
+import model.events.RoomDeactivated;
+import model.events.RoomMemberDemotedFromOwner;
+import model.events.RoomMemberPromotedToOwner;
+import model.events.RoomUpdated;
+import model.events.UserJoinedRoom;
+import model.events.UserLeftRoom;
 import services.DatafeedEventsService;
 import javax.ws.rs.core.NoContentException;
 
 import java.net.URL;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class BotExample {
 
     public static void main(String [] args) {
         BotExample app = new BotExample();
     }
+    
+    public class TestRoomListener implements RoomListener {
+    	
+        private SymBotClient botClient;
+        
+        UserInfo botUserInfo;
+        
+        private RhinosNLP nlpEngine;
+
+        public TestRoomListener(SymBotClient botClient, UserInfo botUserInfo) throws Exception {
+            this.botClient = botClient;
+            this.botUserInfo = botUserInfo;
+            
+            nlpEngine = new RhinosNLP();
+        }
+
+		@Override
+		public void onRoomCreated(RoomCreated arg0) {
+		}
+
+		@Override
+		public void onRoomDeactivated(RoomDeactivated arg0) {
+		}
+
+		@Override
+		public void onRoomMemberDemotedFromOwner(RoomMemberDemotedFromOwner arg0) {
+		}
+
+		@Override
+		public void onRoomMemberPromotedToOwner(RoomMemberPromotedToOwner arg0) {
+		}
+
+		@Override
+		public void onRoomMessage(InboundMessage inboundMessage) {
+			
+			User msgUser = inboundMessage.getUser();
+			UserInfo botUser = botClient.getBotUserInfo();
+			
+			if (inboundMessage.getUser().getUserId().equals(botUserInfo.getId()))
+			{
+				System.out.println("message coming from myself...ignoring...");
+				return;
+			}
+			
+			 try {
+				 nlpEngine.parse(inboundMessage.getStream().getStreamId(), inboundMessage.getMessageText());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public void onRoomReactivated(Stream arg0) {
+		}
+
+		@Override
+		public void onRoomUpdated(RoomUpdated arg0) {
+		}
+
+		@Override
+		public void onUserJoinedRoom(UserJoinedRoom arg0) {
+		}
+
+		@Override
+		public void onUserLeftRoom(UserLeftRoom arg0) {
+		}
+    }
 
 
     public BotExample() {
-        //URL url = getClass().getResource("C:\\MisterQ\\java\\rhinos\\src\\main\\resources\\RhinosSymphonyConfig.json");
+    	
+    	
+        URL url = getClass().getClassLoader().getResource("RhinosSymphonyConfig.json");
         SymConfigLoader configLoader = new SymConfigLoader();
-        SymConfig config = configLoader.loadFromFile("C:\\MisterQ\\java\\rhinos\\src\\main\\resources\\RhinosSymphonyConfig.json");
+        SymConfig config = configLoader.loadFromFile(url.getFile());
         SymBotAuth botAuth = new SymBotAuth(config);
         botAuth.authenticate();
         SymBotClient botClient = SymBotClient.initBot(config, botAuth);
-        //DatafeedEventsService datafeedEventsService = botClient.getDatafeedEventsService();
-        //RoomListener roomListenerTest = new RoomListenerTestImpl(botClient);
-        //datafeedEventsService.addRoomListener(roomListenerTest);
-        //IMListener imListener = new IMListenerImpl(botClient);
-        //datafeedEventsService.addIMListener(imListener);
-        createRoom(botClient);
+        
+        RoomUtil.setBotClient(botClient);
+        
+        DatafeedEventsService datafeedEventsService = botClient.getDatafeedEventsService();
+        
+        try {
+        	UserInfo botUserInfo = botClient.getUsersClient().getUserFromEmail("bot.user4@example.com", true);
+        	
+        	RoomListener roomListener = new TestRoomListener(botClient, botUserInfo);
+            datafeedEventsService.addRoomListener(roomListener);
+            
+            IMListener imListener = new IMListenerImpl(botClient);
+            datafeedEventsService.addIMListener(imListener);
+            
+//            createRoom(botClient);
+            playWithExistingRoom(botClient);
+            
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
+    
+    private void playWithExistingRoom(SymBotClient botClient) throws Exception {
+    	String roomStreamId = "kZ1deiFC_9MPirS340Su13___pxf4OgGdA";
+    	
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+    	
+        OutboundMessage outMessage = new OutboundMessage();
+        outMessage.setMessage("good afternoon from 2018/06/03 " + sdf.format(Calendar.getInstance().getTime()));
+        
+//        UserInfo userInfoQC = botClient.getUsersClient().getUserFromEmail("quentin.courtois@asia.bnpparibas.com", true);
+//        UserInfo userInfoKS = botClient.getUsersClient().getUserFromEmail("katherine.sung@asia.bnpparibas.com", true);
+//        UserInfo userInfoPL = botClient.getUsersClient().getUserFromEmail("paulw.lee@ext.asia.bnpparibas.com", true);
+//        
+//        botClient.getStreamsClient().addMemberToRoom(roomStreamId,userInfoQC.getId());
+//        botClient.getStreamsClient().addMemberToRoom(roomStreamId,userInfoPL.getId());
+//        botClient.getStreamsClient().addMemberToRoom(roomStreamId,userInfoKS.getId());
+    	
+    	try {
+			botClient.getMessagesClient().sendMessage(roomStreamId, outMessage);
+		} catch (SymClientException e) {
+			e.printStackTrace();
+		}
     }
 
     private void createRoom(SymBotClient botClient){
