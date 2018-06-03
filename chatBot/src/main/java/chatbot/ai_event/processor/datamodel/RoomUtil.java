@@ -1,15 +1,11 @@
 package chatbot.ai_event.processor.datamodel;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
-import chatbot.ai_event.processor.AIMsgProcessor;
 import clients.SymBotClient;
 import exceptions.SymClientException;
 import model.OutboundMessage;

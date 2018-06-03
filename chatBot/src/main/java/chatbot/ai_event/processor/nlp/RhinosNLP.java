@@ -2,6 +2,8 @@ package chatbot.ai_event.processor.nlp;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +13,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import chatbot.ai_event.processor.nlp.task.Task;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
@@ -30,17 +36,19 @@ public class RhinosNLP {
 	
 	protected List<TargetPattern> targetPatterns_ = new ArrayList<>();
 	
+	private final Logger logger = LoggerFactory.getLogger(RhinosNLP.class);
+	
 	public class TargetPattern {
 		protected String key_;
-		protected String action_;
+		protected String taskHandlerClass_;
 		
 		protected Set<String> possibleVerbs_ = new HashSet<>();
 		protected Set<String> possibleNouns_ = new HashSet<>();
 		protected Set<String> possibleSystems_ = new HashSet<>();
 		
-		public TargetPattern(String key, String action) {
+		public TargetPattern(String key, String taskHandlerClass) {
 			key_ = key;
-			action_ = action;
+			taskHandlerClass_ = taskHandlerClass;
 		}
 		
 		public void addPossibleVerbs(Collection<String> possibleVerbs) {
@@ -61,6 +69,12 @@ public class RhinosNLP {
 		}
 		public boolean matchSystem(String system) {
 			return possibleSystems_.contains(system.toLowerCase());
+		}
+		
+		public Task createTaskInstance() throws ClassNotFoundException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+			Class<?> clazz = Class.forName(taskHandlerClass_);
+			Constructor<?> ctor = clazz.getConstructor(String.class);
+			return (Task)ctor.newInstance();
 		}
 	}
 	
@@ -101,10 +115,12 @@ public class RhinosNLP {
 	    	targetPattern.addPossibleSystems(Arrays.asList(temp.split("\\s*,\\s*")));
 	    	
 	    	targetPatterns_.add(targetPattern);
+	    	
+	    	logger.debug("Loaded pattern: " + pattern);
 	    }
 	}
 	
-	public void parse(String streamId, String text) {
+	public void parse(String streamId, String text) throws Exception {
 	    // create an empty Annotation just with the given text
 	    Annotation document = new Annotation(text);
 	
@@ -127,7 +143,7 @@ public class RhinosNLP {
 	            // this is the NER label of the token
 	            String ne = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);
 	
-	            System.out.println(String.format("Print: word: [%s] pos: [%s] ne: [%s]", word, pos, ne));
+	            logger.debug(String.format("Print: word: [%s] pos: [%s] ne: [%s]", word, pos, ne));
 	            
 	            if (EPartOfSpeech.VerbBaseForm.equals(EPartOfSpeech.parse(pos))) {
             		verbs.add(word);
@@ -180,29 +196,16 @@ public class RhinosNLP {
 	    			continue;
 	    		
 	    		// create task
-	    		new DownloadLogTask(streamId, systemMatched).perform();
+	    		Task task = targetPattern.createTaskInstance();
+	    		task.addStreamId(streamId);
+	    		task.addSystems(systemMatched);
+	    		task.perform();
+
 	    		performedTask = true;
 	    	}
 	    }
 		
 	    if (!performedTask)
 	    	System.out.println("Nothing to do....");
-	}
-	
-	public class DownloadLogTask {
-		protected String streamId_;
-		
-		protected List<String> targetSystems_ = new ArrayList<String>();
-		
-		public DownloadLogTask(String streamId, Collection<String> systems) {
-			streamId_ = streamId;
-			targetSystems_.addAll(systems);
-		}
-		
-		public void perform() {
-			System.out.println("I am going to download the " + targetSystems_ + " logs now...");
-			System.out.println("Got it - copied to machineXX:/level2support/log/");
-			System.out.println("Sending a message to tell everyone in the chatroom!");
-		}
 	}
 }
