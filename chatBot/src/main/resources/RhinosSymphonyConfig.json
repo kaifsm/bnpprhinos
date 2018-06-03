@@ -1,0 +1,21 @@
+{
+    "sessionAuthHost": "develop2-api.symphony.com",
+    "sessionAuthPort": 8444,
+    "keyAuthHost": "develop2-api.symphony.com",
+    "keyAuthPort": 8444,
+    "podHost": "develop2.symphony.com",
+    "podPort": 443,
+    "agentHost": "develop2.symphony.com",
+    "agentPort": 443,
+    "botCertPath": "C:\\Users\\Hack-1\\Symphony\\certificates\\",
+    "botCertName": "bot.user4",
+    "botCertPassword": "changeit",
+    "botEmailAddress": "quentin.courtois@asia.bnpparibas.com",
+    "appCertPath": "",
+    "appCertName": "",
+    "appCertPassword": "",
+    "proxyURL": "",
+    "proxyUsername": "",
+    "proxyPassword": "",
+    "authTokenRefreshPeriod": "30"
+}

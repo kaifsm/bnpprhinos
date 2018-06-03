@@ -1,0 +1,110 @@
+{
+	"Filter criterias": [
+		"issue type",
+		"impacted systems",
+		"impacted markets",
+		"impacted flows",
+		"impacted clients",
+		"pnl"
+	],
+	"Room merging criterias": [
+		"issue type",
+		"impacted systems",
+		"impacted markets"
+	],
+	"Profiles": [
+		{
+			"Profile name": "APS Agency Cash",
+			"Notification filter": {
+				"impacted systems": [
+					"OMS",
+					"FIX Gateway",
+					"Market Access",
+					"MO agency"
+				],
+				"impacted flows": [
+					"Cash"
+				]
+			}
+		},
+		{
+			"Profile name": "APS Market Access",
+			"Notification filter": {
+				"issue type": [
+					"NetworkDisconnection",
+					"ServerDown"
+				]
+			}
+		},
+		{
+			"Profile name": "Infrastructure",
+			"Notification filter": {
+				"issue type": [
+					"NetworkDisconnection",
+					"ServerDown"
+				]
+			}
+		},
+		{
+			"Profile name": "VIP Client services",
+			"Notification filter": {
+				"impacted clients": [
+					"BigDollar",
+					"BusinessWarrior",
+					"MakeMoney.com"
+				]
+			}
+		},
+		{
+			"Profile name": "Business Manager Cash",
+			"Notification filter": {
+				"pnl": 1000000,
+				"impacted flows": [
+					"Cash"
+				]
+			}
+		}
+	],
+	"Users": [
+		{
+			"Name": "Kaif",
+			"Email": "kaif.mawani@asia.bnpparibas.com",
+			"Profiles": [
+				"Infrastructure"
+			],
+			"Notifications": "on"
+		},
+		{
+			"Name": "David",
+			"Email": "david.lai@asia.bnpparibas.com",
+			"Profiles": [
+				"VIP Client services"
+			],
+			"Notifications": "on"
+		},
+		{
+			"Name": "Paul",
+			"Email": "paulw.lee@ext.asia.bnpparibas.com",
+			"Profiles": [
+				"Business Manager Cash"
+			],
+			"Notifications": "on"
+		},
+		{
+			"Name": "Kath",
+			"Email": "katherine.sung@asia.bnpparibas.com",
+			"Profiles": [
+				"APS Agency Cash"
+			],
+			"Notifications": "on"
+		},
+		{
+			"Name": "Quentin",
+			"Email": "quentin.courtois@asia.bnpparibas.com",
+			"Profiles": [
+				"APS Market Access"
+			],
+			"Notifications": "on"
+		}
+	]
+}
