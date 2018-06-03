@@ -1,4 +1,4 @@
-{"issue type":"NetworkDisconnection",
+{"issue type":"NetworkDisconnection!",
 "impacted flows":{"origin":"institutional clients","flow type":"FnO"},
 "hostname":"bnpserver001",
 "impacted systems":["OMS","AlgoEngine"],
