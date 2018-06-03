@@ -281,7 +281,7 @@ class MyFrame extends JFrame
 				final int count = eventCount.get();
 				for( int i = 0; i < count; ++i )
 				{
-					serverConnection.writeToOutput( incidentJsonObject.toString() + "\n" );	
+					serverConnection.writeToOutput( incidentJsonObject.toString() );	
 				}				
 			} 
 			catch (IOException e) 
