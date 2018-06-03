@@ -63,10 +63,6 @@ public class BotExample {
 
 		@Override
 		public void onRoomMessage(InboundMessage inboundMessage) {
-			
-			User msgUser = inboundMessage.getUser();
-			UserInfo botUser = botClient.getBotUserInfo();
-			
 			if (inboundMessage.getUser().getUserId().equals(botUserInfo.getId()))
 			{
 				System.out.println("message coming from myself...ignoring...");
