@@ -4,7 +4,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class MyFrame extends JFrame 
@@ -17,12 +19,13 @@ class MyFrame extends JFrame
 
 	private ImageIcon rhinoIcon = new ImageIcon("resources/rhino.png");
 	
-	private JButton case1 = new JButton("Repeated rejections");
-	private JButton case2 = new JButton("Repeated cancellations");
-	private JButton case3 = new JButton("High volume");
-	private JButton case4 = new JButton("Network down");
-	private JButton case5 = new JButton("Incorrect price range");
-	private JButton case6 = new JButton("Failover");
+	private static final JButton case1 = new JButton("Repeated rejections");
+	private static final JButton case2 = new JButton("Repeated cancellations");
+	private static final JButton case3 = new JButton("High volume");
+	private static final JButton case4 = new JButton("Network down");
+	private static final JButton case5 = new JButton("Incorrect price range");
+	private static final JButton case6 = new JButton("Failover");
+	private static final JButton case7 = new JButton("Market data delay");
 
 	private JTextField serverAddressTextField = new JTextField();
 	private JTextField serverPortTextField    = new JTextField();
@@ -79,6 +82,32 @@ class MyFrame extends JFrame
 		static String timestampKey			= new String("timestamp");
 	}
 	
+	private static final Map<String, String> caseIDtoDefaultText; 
+	private static final Map<String, String> caseIDtoDefaultCount; //easier to use String for the count, because it will be put into a text field
+	
+	static {
+		caseIDtoDefaultText = new HashMap<String, String>();
+		caseIDtoDefaultText.put(case1.getText(), "Reject"); //for AI to generate RepeatedRejects message
+		caseIDtoDefaultText.put(case2.getText(), "Cancel"); //for AI to generate RepeatedCancels message
+		caseIDtoDefaultText.put(case3.getText(), "Exec");   //for AI to generate HighVolume message
+		caseIDtoDefaultText.put(case4.getText(), "NetworkDisconnection");
+		caseIDtoDefaultText.put(case5.getText(), "IncorrectPriceRange");
+		caseIDtoDefaultText.put(case6.getText(), "Failover");
+		caseIDtoDefaultText.put(case7.getText(), "MarketDataSlowness");
+		
+		caseIDtoDefaultCount = new HashMap<String, String>();
+		caseIDtoDefaultCount.put(case2.getText(), "500");
+		caseIDtoDefaultCount.put(case3.getText(), "500");
+		caseIDtoDefaultCount.put(case1.getText(), "500");
+		caseIDtoDefaultCount.put(case4.getText(), "1");
+		caseIDtoDefaultCount.put(case5.getText(), "1");
+		caseIDtoDefaultCount.put(case6.getText(), "1");
+		caseIDtoDefaultCount.put(case7.getText(), "1");
+	};
+
+
+
+	
 	public MyFrame() 
 	{
 		setTitle("BNPP RHINOS SIMULATOR");
@@ -98,6 +127,7 @@ class MyFrame extends JFrame
 		case4.setBounds(20, 190, 200, 25);
 		case5.setBounds(20, 220, 200, 25);
 		case6.setBounds(20, 250, 200, 25);
+		case7.setBounds(20, 280, 200, 25);
 
 
 		serverAddressTextField.setBounds(150, 10, 100, 20);
@@ -111,7 +141,7 @@ class MyFrame extends JFrame
 		simulationsLabel.setBounds(20, 75, 150, 20);
 		simulationsLabel.setFont(new Font(simulationsLabel.getFont().getName(), Font.BOLD, 18));
 
-		eventsLogTextArea.setBounds(20, 300, 350, 200);
+		eventsLogTextArea.setBounds(20, 330, 350, 200);
 
 		add(eventsLogTextArea);
 
@@ -123,6 +153,7 @@ class MyFrame extends JFrame
 		add(case4);
 		add(case5);
 		add(case6);
+		add(case7);
 
 		add(serverAddressLabel);
 		add(serverPortLabel);
@@ -174,6 +205,12 @@ class MyFrame extends JFrame
 				btnPressedActionHandler(e, case6.getText());
 			}
 		});
+		
+		case7.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				btnPressedActionHandler(e, case7.getText());
+			}
+		});
 	}
 
 	private void extractServerConnectionDetails()
@@ -198,7 +235,7 @@ class MyFrame extends JFrame
 		}
 	}
 
-	private void showInfoInputDialog(ActionEvent evt, JSONObject incidentJsonObject, AtomicInteger eventCount)
+	private void showInfoInputDialog(ActionEvent evt, JSONObject incidentJsonObject, AtomicInteger eventCount, String defaultIssueType, String defaultNoofEvents)
 	{
 	      JPanel myPanel = new JPanel();
 	      myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.Y_AXIS));
@@ -232,6 +269,8 @@ class MyFrame extends JFrame
 	      myPanel.add(EventInfo.pnlLabel);
 	      myPanel.add(EventInfo.pnlTextField);
 	      
+	      EventInfo.issueTypeTextField.setText(defaultIssueType);
+	      EventInfo.numberOfEventsTextField.setText(defaultNoofEvents);
 	      int result = JOptionPane.showConfirmDialog(null, myPanel, 
 	               		"Please provide incident details", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, rhinoIcon);
 	      
@@ -258,6 +297,13 @@ class MyFrame extends JFrame
 	      }
 	}
 	
+	static private String getDefaultTextFromCaseID(String caseID)
+	{
+		Map<String, String> caseIDtoDefaultText = new HashMap<String, String>();
+		return caseID;
+		
+	}
+	
 	private void btnPressedActionHandler(ActionEvent evt, String caseID)
 	{
 		eventsLogTextArea.setText("");
@@ -269,7 +315,7 @@ class MyFrame extends JFrame
 		
 		AtomicInteger eventCount = new AtomicInteger();
 		JSONObject incidentJsonObject = new JSONObject();
-		showInfoInputDialog(evt, incidentJsonObject, eventCount);
+		showInfoInputDialog(evt, incidentJsonObject, eventCount, caseIDtoDefaultText.get(caseID),caseIDtoDefaultCount.get(caseID));
 		eventsLogTextArea.append("\nExtracting event info . . .");
 		
 		if(serverConnection.isConnected())
