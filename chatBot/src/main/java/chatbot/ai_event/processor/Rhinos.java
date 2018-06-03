@@ -34,10 +34,12 @@ public class Rhinos {
 
 		try {
 			connectSymphony();
+			port(23457);
 
 			new Thread(() -> {
 				post("/", (req, res) -> {
-					JsonNode issue = JsonLoader.fromString(res.body());
+					System.err.println("received: " + req.body());
+					JsonNode issue = JsonLoader.fromString(req.body());
 					AIMsgProcessor.messageQueue.put(issue);
 					res.status(201);
 					return null;
