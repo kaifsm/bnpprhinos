@@ -13,22 +13,22 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 public class Filter {
 
-	static List<String> criterias = new ArrayList<String>();
+	static List<String> incidentAttributes = new ArrayList<String>();
 
 	Map<String, List<String>> _filter;
 
 	Filter(JsonNode filterNode) {
 
 		_filter = new HashMap<String, List<String>>();
-		Consumer<String> criteriaConsumer = (String criteria) -> _filter.put(criteria,
-				loadCriteria(criteria, filterNode));
+		Consumer<String> incidentAttibuteConsumer = (String incidentAttibute) -> _filter.put(incidentAttibute,
+				loadIncidentAttibuteValues(incidentAttibute, filterNode));
 
-		criterias.forEach(criteriaConsumer);
+		incidentAttributes.forEach(incidentAttibuteConsumer);
 	}
 
-	List<String> loadCriteria(String criteria, JsonNode filterNode) {
+	List<String> loadIncidentAttibuteValues(String incidentAttibute, JsonNode filterNode) {
 		List<String> result = new ArrayList<String>();
-		JsonNode criteriaNode = filterNode.get(criteria);
+		JsonNode criteriaNode = filterNode.get(incidentAttibute);
 		if (criteriaNode != null) {
 			Consumer<JsonNode> criteriaValueConsumer = (JsonNode criteriaValue) -> result.add(criteriaValue.asText());
 			criteriaNode.forEach(criteriaValueConsumer);
@@ -74,12 +74,12 @@ public class Filter {
 		return true;
 	}
 
-	public static void addCriteria(String criteria) {
-		criterias.add(criteria);
+	public static void addIncidentAttribute(String criteria) {
+		incidentAttributes.add(criteria);
 	}
 
-	public static List<String> getCriterias() {
-		return criterias;
+	public static List<String> getIncidentAttributes() {
+		return incidentAttributes;
 	}
 
 }
