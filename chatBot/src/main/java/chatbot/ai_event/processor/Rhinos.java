@@ -53,11 +53,6 @@ public class Rhinos {
 
 	}
 
-	private void post(String string, Route route) {
-		// TODO Auto-generated method stub
-		
-	}
-
 	void connectSymphony() throws Exception {
 		URL url = getClass().getClassLoader().getResource("RhinosSymphonyConfig.json");
 		SymConfigLoader configLoader = new SymConfigLoader();
