@@ -36,7 +36,7 @@ public class Rhinos {
 			connectSymphony();
 
 			new Thread(() -> {
-				post("/rhinos/issues", (req, res) -> {
+				post("/", (req, res) -> {
 					JsonNode issue = JsonLoader.fromString(res.body());
 					AIMsgProcessor.messageQueue.put(issue);
 					res.status(201);
