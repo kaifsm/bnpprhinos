@@ -105,6 +105,7 @@ public class AIMsgProcessor implements Runnable {
 
 		// Check if room already exist
 		if (RoomUtil.getRooms().containsKey(roomKey)) {
+			System.out.println("Update existing room " + roomKey);
 			RoomInfo roomInfo = RoomUtil.getRooms().get(roomName).getRoomInfo();
 			OutboundMessage message = new OutboundMessage();
 			message.setMessage("New occurence at " + incidentNode.get("timestamp"));
@@ -119,7 +120,7 @@ public class AIMsgProcessor implements Runnable {
 			System.out.println("No user to notify -> drop incident");
 			return;
 		}
-
+		System.out.println("Create new room " + roomKey);
 		Room room = new Room();
 		room.setName(roomName);
 		room.setDescription("test");
@@ -134,6 +135,7 @@ public class AIMsgProcessor implements Runnable {
 		}
 		// Add impacted users
 		for (UserInfo user : impactedUsers) {
+			System.out.println("Add user " + user.getEmailAddress());
 			RoomUtil.getBotClient().getStreamsClient().addMemberToRoom(roomInfo.getRoomSystemInfo().getId(),
 					user.getId());
 		}
