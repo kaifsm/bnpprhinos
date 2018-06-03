@@ -1,6 +1,5 @@
 package chatbot.ai_event.processor;
 
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
@@ -18,7 +17,6 @@ import chatbot.ai_event.processor.datamodel.Filter;
 import chatbot.ai_event.processor.datamodel.Profile;
 import chatbot.ai_event.processor.datamodel.RoomUtil;
 import chatbot.ai_event.processor.datamodel.User;
-import clients.SymBotClient;
 import exceptions.SymClientException;
 import model.OutboundMessage;
 import model.Room;
@@ -28,7 +26,6 @@ import model.UserInfo;
 public class AIMsgProcessor implements Runnable {
 
 	static LinkedBlockingQueue<JsonNode> messageQueue = new LinkedBlockingQueue<JsonNode>();
-	static SymBotClient botClient;
 	static Map<String, RoomInfo> rooms = new HashMap<String, RoomInfo>();
 
 	public static void main(String[] args) {
@@ -46,21 +43,20 @@ public class AIMsgProcessor implements Runnable {
 		}
 	}
 
-	void processIncidentFromJsonFile() throws IOException, SymClientException
-	{
+	void processIncidentFromJsonFile() throws IOException, SymClientException {
 		URL url = getClass().getResource("IssueSample.json");
 		JsonNode incidentNode = JsonLoader.fromURL(url);
 		processIncident(incidentNode);
 	}
-	
-	AIMsgProcessor() {
-	}
 
-	AIMsgProcessor(SymBotClient botClient_) {
+	AIMsgProcessor() {
 		try {
-			botClient = botClient_;
-			loadUserConfig();
-			User.updateUserInfo(botClient);
+			synchronized (User.getUsers()) {
+				if (User.getUsers().isEmpty()) {
+					loadUserConfig();
+					User.updateUserInfo(RoomUtil.getBotClient());
+				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -77,8 +73,7 @@ public class AIMsgProcessor implements Runnable {
 		JsonNode allNodes = JsonLoader.fromURL(url);
 
 		// load filter criterias
-		if (!allNodes.has("Filter criterias"))
-		{
+		if (!allNodes.has("Filter criterias")) {
 			System.out.println("Mssing Filter Criterias !!!");
 			throw new Exception("Missing Filter Criterias !!!");
 		}
@@ -98,7 +93,7 @@ public class AIMsgProcessor implements Runnable {
 		Consumer<JsonNode> roomMergingCriteriaConsumer = (JsonNode criteriaNode) -> RoomUtil
 				.addMergingCriteria(criteriaNode.asText());
 		allNodes.get("Room merging criterias").forEach(roomMergingCriteriaConsumer);
-		
+
 		System.out.println("Loading user&profile successful !!");
 	}
 
@@ -112,15 +107,14 @@ public class AIMsgProcessor implements Runnable {
 			RoomInfo roomInfo = rooms.get(roomName);
 			OutboundMessage message = new OutboundMessage();
 			message.setMessage("New occurence at " + incidentNode.get("timestamp"));
-			botClient.getMessagesClient().sendMessage(roomInfo.getRoomSystemInfo().getId(), message);
+			RoomUtil.getBotClient().getMessagesClient().sendMessage(roomInfo.getRoomSystemInfo().getId(), message);
 			return;
 		}
 
 		// Get user list
 		List<UserInfo> impactedUsers = User.getImpactedUsers(incidentNode);
-		
-		if (impactedUsers.isEmpty())
-		{
+
+		if (impactedUsers.isEmpty()) {
 			System.out.println("No user to notify -> drop incident");
 			return;
 		}
@@ -131,7 +125,7 @@ public class AIMsgProcessor implements Runnable {
 		room.setDiscoverable(true);
 		room.setPublic(true);
 		room.setViewHistory(true);
-		RoomInfo roomInfo = botClient.getStreamsClient().createRoom(room);
+		RoomInfo roomInfo = RoomUtil.getBotClient().getStreamsClient().createRoom(room);
 		rooms.put(roomName, roomInfo);
 		if (roomInfo == null) {
 			System.out.println("Failed to create room!!");
@@ -139,13 +133,14 @@ public class AIMsgProcessor implements Runnable {
 		}
 		// Add impacted users
 		for (UserInfo user : impactedUsers) {
-			botClient.getStreamsClient().addMemberToRoom(roomInfo.getRoomSystemInfo().getId(), user.getId());
+			RoomUtil.getBotClient().getStreamsClient().addMemberToRoom(roomInfo.getRoomSystemInfo().getId(),
+					user.getId());
 		}
 
 		// Send welcome message
 		OutboundMessage message = new OutboundMessage();
 		message.setMessage("First occurence at " + incidentNode.get("timestamp"));
-		botClient.getMessagesClient().sendMessage(roomInfo.getRoomSystemInfo().getId(), message);
+		RoomUtil.getBotClient().getMessagesClient().sendMessage(roomInfo.getRoomSystemInfo().getId(), message);
 
 	}
 

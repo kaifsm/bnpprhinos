@@ -3,6 +3,7 @@ package chatbot.ai_event.processor;
 import java.net.URL;
 
 import authentication.SymBotAuth;
+import chatbot.ai_event.processor.datamodel.RoomUtil;
 import clients.SymBotClient;
 import configuration.SymConfig;
 import configuration.SymConfigLoader;
@@ -14,25 +15,21 @@ public class Rhinos {
 	}
 
 	Rhinos() {
-		SymBotClient botClient = connectSymphony();
-
-		(new AIMsgProcessor(botClient)).run();
 		
-		//finished = false;
-		//while (!finished)
-		//{
-			//Thread.sleep(1000000000);
-		//}
+		connectSymphony();
+		
+		//Main thread process AI messages
+		(new AIMsgProcessor()).run();
+		
 	}
 
-	SymBotClient connectSymphony() {
+	void connectSymphony() {
 		URL url = getClass().getResource("RhinosSymphonyConfig.json");
 		SymConfigLoader configLoader = new SymConfigLoader();
 		SymConfig config = configLoader.loadFromFile(url.getPath());
 		SymBotAuth botAuth = new SymBotAuth(config);
 		botAuth.authenticate();
 		System.out.println("Connection to Symphony successful !");
-		return SymBotClient.initBot(config, botAuth);
+		RoomUtil.setBotClient( SymBotClient.initBot(config, botAuth) );
 	}
-
 }

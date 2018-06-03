@@ -1,6 +1,7 @@
 package chatbot.ai_event.processor;
 
 import clients.SymBotClient;
+import exceptions.SymClientException;
 import listeners.RoomListener;
 import model.InboundMessage;
 import model.OutboundMessage;

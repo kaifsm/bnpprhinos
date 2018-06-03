@@ -9,7 +9,22 @@ import java.util.function.Consumer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
+import chatbot.ai_event.processor.AIMsgProcessor;
+import clients.SymBotClient;
+import exceptions.SymClientException;
+import model.OutboundMessage;
+
 public class RoomUtil {
+	
+	static SymBotClient botClient;
+
+	public static SymBotClient getBotClient() {
+		return botClient;
+	}
+
+	public static void setBotClient(SymBotClient botClient) {
+		RoomUtil.botClient = botClient;
+	}
 
 	static List<String> mergingCriterias = new ArrayList<String>();
 
@@ -31,5 +46,11 @@ public class RoomUtil {
 			}
 		}
 		return name.toString().trim();
+	}
+	
+	public static void sendMessage(String streamId, String msg) throws SymClientException {
+    	OutboundMessage messageOut = new OutboundMessage();
+        messageOut.setMessage(msg);
+        botClient.getMessagesClient().sendMessage(streamId, messageOut);
 	}
 }

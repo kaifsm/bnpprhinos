@@ -16,6 +16,10 @@ public class User {
 	
 	static List<User> users = new ArrayList<User>();
 
+	public static List<User> getUsers() {
+		return users;
+	}
+
 	public User(JsonNode usersNodes) {
 		name = usersNodes.get("Name").asText();
 		email = usersNodes.get("Email").asText();
