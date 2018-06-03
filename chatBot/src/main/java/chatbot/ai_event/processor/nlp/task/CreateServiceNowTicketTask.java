@@ -1,10 +1,12 @@
 package chatbot.ai_event.processor.nlp.task;
 
+import chatbot.ai_event.processor.datamodel.RoomUtil;
+
 public class CreateServiceNowTicketTask extends Task {
 
 	@Override
 	public void perform() throws Exception {
-		// TODO
+		RoomUtil.createServiceNowTicket(streamId_);
 	}
 
 }

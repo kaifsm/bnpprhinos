@@ -1,14 +1,22 @@
 import javax.swing.*;
+import org.json.JSONObject;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicInteger;
 
-class MyFrame extends JFrame {
-
+class MyFrame extends JFrame 
+{
 	private static final long serialVersionUID = -4078361198228290265L;
 
 	static final int highVolumeMsgNum = 100000;
+	
+	static final int TEXT_FIELD_SIZE = 30;
 
+	private ImageIcon rhinoIcon = new ImageIcon("resources/rhino.png");
+	
 	private JButton case1 = new JButton("Repeated rejections");
 	private JButton case2 = new JButton("Repeated cancellations");
 	private JButton case3 = new JButton("High volume");
@@ -16,22 +24,62 @@ class MyFrame extends JFrame {
 	private JButton case5 = new JButton("Incorrect price range");
 	private JButton case6 = new JButton("Failover");
 
-	private JTextField txtA = new JTextField();
-	private JTextField txtB = new JTextField();
+	private JTextField serverAddressTextField = new JTextField();
+	private JTextField serverPortTextField    = new JTextField();
 
-	private JLabel lblA = new JLabel("Server address :");
-	private JLabel lblB = new JLabel("Server Port :");
-	private JLabel simulations = new JLabel("Simulations");
+	private JLabel serverAddressLabel = new JLabel("Server address :");
+	private JLabel serverPortLabel    = new JLabel("Server Port :");
+	private JLabel simulationsLabel   = new JLabel("Simulations");
 
-	private JTextArea textArea = new JTextArea("Events log", 200, 600);
+	private JTextArea eventsLogTextArea = new JTextArea("Events log", 200, 600);
 
+    private static int VERTICAL_STRUT_LENGTH = 5;
+    
 	private String hostIP;
 	private int hostPort;
 
 	private ServerConnection serverConnection;
+	
+	static class EventInfo
+	{
+		static JTextField numberOfEventsTextField 	= new JTextField(TEXT_FIELD_SIZE);
+		static JTextField issueTypeTextField 		= new JTextField(TEXT_FIELD_SIZE);
+	    static JTextField impactedSystemsTextField 	= new JTextField(TEXT_FIELD_SIZE);
+	    static JTextField hostNameTextField 		= new JTextField(TEXT_FIELD_SIZE);
+	    static JTextField impactedMarketsTextField 	= new JTextField(TEXT_FIELD_SIZE);
+	    static JTextField impactedFlowsTextField 	= new JTextField(TEXT_FIELD_SIZE);
+	    static JTextField originTextField 			= new JTextField(TEXT_FIELD_SIZE);
+	    static JTextField flowTypeTextField 		= new JTextField(TEXT_FIELD_SIZE);
+	    static JTextField pnlTextField 				= new JTextField(TEXT_FIELD_SIZE);
 
-	public MyFrame() {
-		setTitle("Simulator");
+	    static JLabel numberOfEventsLabel			= new JLabel("Number of events: ");
+		static JLabel issueTypeLabel 				= new JLabel("Issue Type :");
+		static JLabel impactedSystemsLabel     		= new JLabel("Impacted Systems :");
+		static JLabel hostNameLabel   				= new JLabel("Host Name: ");
+		static JLabel impactedMarketsLabel 			= new JLabel("Impacted Markets :");
+		static JLabel impactedFlowsLabel 			= new JLabel("Impacted Flows: ");
+		static JLabel originLabel 					= new JLabel("Issue Origin: ");
+		static JLabel flowTypeLabel 				= new JLabel("Flow Type: ");
+		static JLabel pnlLabel 						= new JLabel("PNL: ");
+	}
+	
+	static class JsonKeys
+	{
+		static String issueTypeKey 		 	= new String("issue type"); 
+		static String impactedSystemsKey 	= new String("impacted systems");
+		static String hostnameKey 		 	= new String("hostname");
+		static String impactedMarketsKey 	= new String("impacted markets");
+		static String impactedFlowsKey 		= new String("impacted flows");
+		static String impactedClientsKey 	= new String("impacted clients");
+		static String originKey 			= new String("origin");
+		static String flowTypeKey 			= new String("flow type");
+		static String pnlKey				= new String("pnl");
+		static String timestampKey			= new String("timestamp");
+	}
+	
+	public MyFrame() 
+	{
+		setTitle("BNPP RHINOS SIMULATOR");
 		setSize(400, 600);
 		setLocation(new Point(300, 200));
 		setLayout(null);
@@ -50,22 +98,22 @@ class MyFrame extends JFrame {
 		case6.setBounds(20, 250, 200, 25);
 
 
-		txtA.setBounds(150, 10, 100, 20);
-		txtB.setBounds(150, 35, 100, 20);
+		serverAddressTextField.setBounds(150, 10, 100, 20);
+		serverPortTextField.setBounds(150, 35, 100, 20);
 
-		lblA.setBounds(20, 10, 150, 20);
-		lblA.setFont(new Font(lblA.getFont().getName(), Font.BOLD, 14));
-		lblB.setBounds(20, 35, 150, 20);
-		lblB.setFont(new Font(lblB.getFont().getName(), Font.BOLD, 14));
+		serverAddressLabel.setBounds(20, 10, 150, 20);
+		serverAddressLabel.setFont(new Font(serverAddressLabel.getFont().getName(), Font.BOLD, 14));
+		serverPortLabel.setBounds(20, 35, 150, 20);
+		serverPortLabel.setFont(new Font(serverPortLabel.getFont().getName(), Font.BOLD, 14));
 
-		simulations.setBounds(20, 75, 150, 20);
-		simulations.setFont(new Font(simulations.getFont().getName(), Font.BOLD, 18));
+		simulationsLabel.setBounds(20, 75, 150, 20);
+		simulationsLabel.setFont(new Font(simulationsLabel.getFont().getName(), Font.BOLD, 18));
 
-		textArea.setBounds(20, 300, 350, 200);
+		eventsLogTextArea.setBounds(20, 300, 350, 200);
 
-		add(textArea);
+		add(eventsLogTextArea);
 
-		add(simulations);
+		add(simulationsLabel);
 
 		add(case1);
 		add(case2);
@@ -74,15 +122,15 @@ class MyFrame extends JFrame {
 		add(case5);
 		add(case6);
 
-		add(lblA);
-		add(lblB);
+		add(serverAddressLabel);
+		add(serverPortLabel);
 
-		add(txtA);
-		add(txtB);
+		add(serverAddressTextField);
+		add(serverPortTextField);
 	}
 
-	private void initEvent() {
-
+	private void initEvent() 
+	{
 		this.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				System.exit(1);
@@ -91,55 +139,55 @@ class MyFrame extends JFrame {
 
 		case1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedCase1(e);
+				btnPressedActionHandler(e, case1.getText());
 			}
 		});
 
 		case2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedCase2(e);
+				btnPressedActionHandler(e, case2.getText());
 			}
 		});
 
 		case3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedCase3(e);
+				btnPressedActionHandler(e, case3.getText());
 			}
 		});
 
 		case4.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedCase4(e);
+				btnPressedActionHandler(e, case4.getText());
 			}
 		});
 
 		case5.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedCase5(e);
+				btnPressedActionHandler(e, case5.getText());
 			}
 		});
 
 		case6.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedCase6(e);
+				btnPressedActionHandler(e, case6.getText());
 			}
 		});
 	}
 
 	private void extractServerConnectionDetails()
 	{
-		hostIP = txtA.getText();
-		hostPort = Integer.parseInt(txtB.getText());
+		hostIP = serverAddressTextField.getText();
+		hostPort = Integer.parseInt(serverPortTextField.getText());
 	}
 
 	private void connectToServer()
 	{
 		try
 		{
-			textArea.setText("Connecting to server at host: " + hostIP + " and port: " + hostPort);
+			eventsLogTextArea.setText("Connecting to server at host: " + hostIP + " and port: " + hostPort);
 			serverConnection = new ServerConnection(hostIP, hostPort);
 			serverConnection.connect();
-			textArea.setText("Server connection established");
+			eventsLogTextArea.setText("Server connection established");
 		}
 		catch(IOException ex)
 		{
@@ -148,171 +196,98 @@ class MyFrame extends JFrame {
 		}
 	}
 
-	private void btnPressedCase1(ActionEvent evt)
+	private void showInfoInputDialog(ActionEvent evt, JSONObject incidentJsonObject, AtomicInteger eventCount)
 	{
-		textArea.setText("");
-		textArea.setText("Case: Repeated rejections");
+	      JPanel myPanel = new JPanel();
+	      myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.Y_AXIS));
+	      myPanel.add(EventInfo.numberOfEventsLabel);
+	      myPanel.add(EventInfo.numberOfEventsTextField);
+	      myPanel.add(Box.createVerticalStrut(VERTICAL_STRUT_LENGTH));
+	      myPanel.add(EventInfo.issueTypeLabel);
+	      myPanel.add(EventInfo.issueTypeTextField);
+	      myPanel.add(Box.createVerticalStrut(VERTICAL_STRUT_LENGTH));
+	      myPanel.add(EventInfo.impactedSystemsLabel);
+	      myPanel.add(EventInfo.impactedSystemsTextField);
+	      myPanel.add(Box.createVerticalStrut(VERTICAL_STRUT_LENGTH));
+	      myPanel.add(EventInfo.hostNameLabel);
+	      myPanel.add(EventInfo.hostNameTextField);
+	      myPanel.add(Box.createVerticalStrut(VERTICAL_STRUT_LENGTH));
+	      myPanel.add(EventInfo.impactedMarketsLabel);
+	      myPanel.add(EventInfo.impactedMarketsTextField);
+	      myPanel.add(Box.createVerticalStrut(VERTICAL_STRUT_LENGTH));
+	      myPanel.add(EventInfo.impactedFlowsLabel);
+	      myPanel.add(EventInfo.impactedFlowsTextField);
+	      myPanel.add(Box.createVerticalStrut(VERTICAL_STRUT_LENGTH));
+	      myPanel.add(EventInfo.originLabel);
+	      myPanel.add(EventInfo.originTextField);
+	      myPanel.add(Box.createVerticalStrut(VERTICAL_STRUT_LENGTH));
+	      myPanel.add(EventInfo.flowTypeLabel);
+	      myPanel.add(EventInfo.flowTypeTextField);
+	      myPanel.add(Box.createVerticalStrut(VERTICAL_STRUT_LENGTH));
+	      myPanel.add(EventInfo.pnlLabel);
+	      myPanel.add(EventInfo.pnlTextField);
+	      
+	      int result = JOptionPane.showConfirmDialog(null, myPanel, 
+	               		"Please provide incident details", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, rhinoIcon);
+	      
+	      if (result == JOptionPane.OK_OPTION) 
+	      {
+	    	  try
+	    	  {
+	    		  eventCount.set( Integer.parseInt(EventInfo.numberOfEventsTextField.getText()) );
+		    	  incidentJsonObject.put( JsonKeys.issueTypeKey, EventInfo.issueTypeTextField.getText() );
+		    	  incidentJsonObject.put( JsonKeys.impactedSystemsKey, EventInfo.impactedSystemsTextField.getText() );
+		    	  incidentJsonObject.put( JsonKeys.hostnameKey, EventInfo.hostNameTextField.getText() );
+		    	  incidentJsonObject.put( JsonKeys.impactedMarketsKey, EventInfo.impactedMarketsTextField.getText() );
+		    	  incidentJsonObject.put( JsonKeys.impactedFlowsKey, EventInfo.impactedFlowsTextField.getText() );
+		    	  incidentJsonObject.put( JsonKeys.originKey, EventInfo.originTextField.getText() );
+		    	  incidentJsonObject.put( JsonKeys.flowTypeKey, EventInfo.flowTypeTextField.getText() );
+		    	  incidentJsonObject.put( JsonKeys.pnlKey, EventInfo.pnlTextField.getText() );
+		    	  incidentJsonObject.put( JsonKeys.timestampKey, new Date().toString() );
+	    	  }
+	    	  catch(Exception ex)
+	    	  {
+	    		  System.out.println( "Exception: " + ex.getMessage() );
+	    	  }
+	      }
+	}
+	
+	private void btnPressedActionHandler(ActionEvent evt, String caseID)
+	{
+		eventsLogTextArea.setText("");
+		eventsLogTextArea.setText("Case: " + caseID);
+		eventsLogTextArea.append("\nPopulating event info input dialog . . .");		
+		
 		extractServerConnectionDetails();
-		connectToServer();
+		connectToServer();		
+		
+		AtomicInteger eventCount = new AtomicInteger();
+		JSONObject incidentJsonObject = new JSONObject();
+		showInfoInputDialog(evt, incidentJsonObject, eventCount);
+		eventsLogTextArea.append("\nExtracting event info . . .");
+		
 		if(serverConnection.isConnected())
 		{
-			textArea.append("\nSending events to server . . .");
-			final String str = "{\"name\": \"Rejection\"}";
-			for (int i = 0; i < highVolumeMsgNum; ++i)
+			eventsLogTextArea.append( "\nSending events to server . . ." );
+
+			try 
 			{
-				try
+				final int count = eventCount.get();
+				for( int i = 0; i < count; ++i )
 				{
-					serverConnection.writeToOutput(str);
-				}
-				catch (IOException e)
-				{
-					JOptionPane.showMessageDialog(null, "IOException while connecting to server: " + e.getMessage());
-					e.printStackTrace();
-				}
-			}
-		}
-		textArea.append("\nEvents successfully sent to server");
+					serverConnection.writeToOutput( incidentJsonObject.toString() + "\n" );	
+				}				
+			} 
+			catch (IOException e) 
+			{
+				e.printStackTrace();
+				System.out.println( "Exception occured: " + e.getMessage() );
+				eventsLogTextArea.append( "\nException occured: " + e.getMessage() );
+			}			
+		}	
+		
+		eventsLogTextArea.append("\nEvents successfully sent to server");
 		serverConnection.killConnection();
-		textArea.append("\nCase completed");
-	}
-
-	private void btnPressedCase2(ActionEvent evt)
-	{
-		textArea.setText("");
-		textArea.setText("Case: Repeated cancellations");
-		extractServerConnectionDetails();
-		connectToServer();
-		if(serverConnection.isConnected())
-		{
-			try
-			{
-				textArea.append("\nSending events to server . . .");
-				String str = "{\"name\": \"Cancellation\"}";
-				for( int i = 0; i < highVolumeMsgNum; ++i )
-				{
-					serverConnection.writeToOutput(str);
-				}
-				textArea.append("\nEvents successfully sent to server");
-				serverConnection.killConnection();
-			}
-			catch (IOException e)
-			{
-				JOptionPane.showMessageDialog(null, "IOException while connecting to server: " + e.getMessage());
-				e.printStackTrace();
-			}
-		}
-		textArea.append("\nCase completed");
-	}
-
-	private void btnPressedCase3(ActionEvent evt)
-	{
-		textArea.setText("");
-		textArea.setText("Case: High volumes");
-		extractServerConnectionDetails();
-		connectToServer();
-		if(serverConnection.isConnected())
-		{
-			try
-			{
-				textArea.append("\nSending events to server . . .");
-				String str = "{\"name\": \"Order\"}";
-				for( int i = 0; i < highVolumeMsgNum; ++i )
-				{
-					serverConnection.writeToOutput(str);
-				}
-				textArea.append("\nEvents successfully sent to server");
-				serverConnection.killConnection();
-			}
-			catch (IOException e)
-			{
-				JOptionPane.showMessageDialog(null, "IOException while connecting to server: " + e.getMessage());
-				e.printStackTrace();
-			}
-		}
-		textArea.append("\nCase completed");
-	}
-
-	private void btnPressedCase4(ActionEvent evt)
-	{
-		textArea.setText("");
-		textArea.setText("Case: Network down");
-		extractServerConnectionDetails();
-		connectToServer();
-		if(serverConnection.isConnected())
-		{
-			try
-			{
-				textArea.append("\nSending event to server . . .");
-				String str = "{\"name\": \"Network down\"}";
-				for( int i = 0; i < highVolumeMsgNum; ++i )
-				{
-					serverConnection.writeToOutput(str);
-				}
-				textArea.append("\nEvent successfully sent to server");
-				serverConnection.killConnection();
-			}
-			catch (IOException e)
-			{
-				JOptionPane.showMessageDialog(null, "IOException while connecting to server: " + e.getMessage());
-				e.printStackTrace();
-			}
-		}
-		textArea.append("\nCase completed");
-	}
-
-	private void btnPressedCase5(ActionEvent evt)
-	{
-		textArea.setText("");
-		textArea.setText("Case: Incorrect price range");
-		extractServerConnectionDetails();
-		connectToServer();
-		if(serverConnection.isConnected())
-		{
-			try
-			{
-				textArea.append("\nSending events to server . . .");
-				String str = "{\"name\": \"Incorrect price range\"}";
-				for( int i = 0; i < highVolumeMsgNum; ++i )
-				{
-					serverConnection.writeToOutput(str);
-				}
-				textArea.append("\nEvents successfully sent to server");
-				serverConnection.killConnection();
-			}
-			catch (IOException e)
-			{
-				JOptionPane.showMessageDialog(null, "IOException while connecting to server: " + e.getMessage());
-				e.printStackTrace();
-			}
-		}
-		textArea.append("\nCase completed");
-	}
-
-	private void btnPressedCase6(ActionEvent evt)
-	{
-		textArea.setText("");
-		textArea.setText("Case: Failover");
-		extractServerConnectionDetails();
-		connectToServer();
-		if(serverConnection.isConnected())
-		{
-			try
-			{
-				textArea.append("\nSending event to server . . .");
-				String str = "{\"name\": \"Failover\"}";
-				for( int i = 0; i < highVolumeMsgNum; ++i )
-				{
-					serverConnection.writeToOutput(str);
-				}
-				textArea.append("\nEvents successfully sent to server");
-				serverConnection.killConnection();
-			}
-			catch (IOException e)
-			{
-				JOptionPane.showMessageDialog(null, "IOException while connecting to server: " + e.getMessage());
-				e.printStackTrace();
-			}
-		}
-		textArea.append("\nCase completed");
+		eventsLogTextArea.append("\nCase completed");
 	}
 }
