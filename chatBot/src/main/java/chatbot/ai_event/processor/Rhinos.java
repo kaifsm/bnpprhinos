@@ -16,6 +16,14 @@ import listeners.RoomListener;
 import model.UserInfo;
 import services.DatafeedEventsService;
 
+import static spark.Spark.*;
+import spark.Request;
+import spark.Response;
+import spark.Route;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.fge.jackson.JsonLoader;
+
 public class Rhinos {
 
 	public static void main(String[] args) {
@@ -28,11 +36,26 @@ public class Rhinos {
 			connectSymphony();
 			// Main thread process AI messages
 			(new AIMsgProcessor()).run();
+			
+					new Thread(() -> {
+			post("/rhinos/issues", (req, res) -> {
+				JsonNode issue = JsonLoader.fromString(res.body());
+				AIMsgProcessor.messageQueue.put(issue);
+				res.status(201);
+				return null;
+			});
+		}).start();
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
+	}
+
+	private void post(String string, Route route) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	void connectSymphony() throws Exception {

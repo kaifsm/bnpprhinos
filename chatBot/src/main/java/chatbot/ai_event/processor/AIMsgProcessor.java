@@ -26,7 +26,7 @@ import model.UserInfo;
 
 public class AIMsgProcessor implements Runnable {
 
-	static LinkedBlockingQueue<JsonNode> messageQueue = new LinkedBlockingQueue<JsonNode>();
+	public static LinkedBlockingQueue<JsonNode> messageQueue = new LinkedBlockingQueue<JsonNode>();
 
 	public static void main(String[] args) {
 		AIMsgProcessor app = new AIMsgProcessor();
