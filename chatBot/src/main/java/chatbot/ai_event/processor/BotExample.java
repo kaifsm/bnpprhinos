@@ -1,6 +1,7 @@
 package chatbot.ai_event.processor;
 
 import authentication.SymBotAuth;
+import chatbot.ai_event.processor.datamodel.RoomUtil;
 import chatbot.ai_event.processor.nlp.RhinosNLP;
 import clients.SymBotClient;
 import configuration.SymConfig;
@@ -33,10 +34,13 @@ public class BotExample {
     	
         private SymBotClient botClient;
         
+        UserInfo botUserInfo;
+        
         private RhinosNLP nlpEngine;
 
-        public TestRoomListener(SymBotClient botClient) throws Exception {
+        public TestRoomListener(SymBotClient botClient, UserInfo botUserInfo) throws Exception {
             this.botClient = botClient;
+            this.botUserInfo = botUserInfo;
             
             nlpEngine = new RhinosNLP();
         }
@@ -59,8 +63,18 @@ public class BotExample {
 
 		@Override
 		public void onRoomMessage(InboundMessage inboundMessage) {
+			
+			User msgUser = inboundMessage.getUser();
+			UserInfo botUser = botClient.getBotUserInfo();
+			
+			if (inboundMessage.getUser().getUserId().equals(botUserInfo.getId()))
+			{
+				System.out.println("message coming from myself...ignoring...");
+				return;
+			}
+			
 			 try {
-				nlpEngine.parse(inboundMessage.getStream().getStreamId(), inboundMessage.getMessage());
+				 nlpEngine.parse(inboundMessage.getStream().getStreamId(), inboundMessage.getMessageText());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -85,17 +99,24 @@ public class BotExample {
 
 
     public BotExample() {
-        URL url = getClass().getClassLoader().getResource("kathBotConfig.json");
+    	
+    	
+        URL url = getClass().getClassLoader().getResource("RhinosSymphonyConfig.json");
         SymConfigLoader configLoader = new SymConfigLoader();
-        SymConfig config = configLoader.loadFromFile("C:\\MisterQ\\java\\rhinos\\src\\main\\resources\\RhinosSymphonyConfig.json");
+        SymConfig config = configLoader.loadFromFile(url.getFile());
         SymBotAuth botAuth = new SymBotAuth(config);
         botAuth.authenticate();
         SymBotClient botClient = SymBotClient.initBot(config, botAuth);
+        
+        RoomUtil.setBotClient(botClient);
+        
         DatafeedEventsService datafeedEventsService = botClient.getDatafeedEventsService();
         
         try {
-            datafeedEventsService.addRoomListener(new TestRoomListener(botClient));
-            //datafeedEventsService.addRoomListener(roomListenerTest);
+        	UserInfo botUserInfo = botClient.getUsersClient().getUserFromEmail("bot.user4@example.com", true);
+        	
+        	RoomListener roomListener = new TestRoomListener(botClient, botUserInfo);
+            datafeedEventsService.addRoomListener(roomListener);
             
             IMListener imListener = new IMListenerImpl(botClient);
             datafeedEventsService.addIMListener(imListener);

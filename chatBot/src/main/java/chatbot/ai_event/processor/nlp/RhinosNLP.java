@@ -27,7 +27,7 @@ public class RhinosNLP {
 	
 	protected static final String PROPERTY_KEY_PATTERNS = "patterns";
 	
-	protected static final String PATTERN_KEY_SUFFIX_ACTION = ".action";
+	protected static final String PATTERN_KEY_SUFFIX_TASKHANDLER = ".taskhandler";
 	protected static final String PATTERN_KEY_SUFFIX_VERBS = ".verbs";
 	protected static final String PATTERN_KEY_SUFFIX_NOUNS = ".nouns";
 	protected static final String PATTERN_KEY_SUFFIX_SYSTEMS = ".systems";
@@ -58,7 +58,10 @@ public class RhinosNLP {
 			possibleNouns_.addAll(possibleNouns);
 		}
 		public void addPossibleSystems(Collection<String> possibleSystems) {
-			possibleSystems_.addAll(possibleSystems);
+			for (String possibleSystem : possibleSystems) {
+				if (possibleSystem != null && !possibleSystem.isEmpty())
+					possibleSystems_.add(possibleSystem);
+			}
 		}
 		
 		public boolean matchVerb(String verb) {
@@ -70,10 +73,13 @@ public class RhinosNLP {
 		public boolean matchSystem(String system) {
 			return possibleSystems_.contains(system.toLowerCase());
 		}
+		public boolean hasSystemSetup() {
+			return !(possibleSystems_.isEmpty());
+		}
 		
 		public Task createTaskInstance() throws ClassNotFoundException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 			Class<?> clazz = Class.forName(taskHandlerClass_);
-			Constructor<?> ctor = clazz.getConstructor(String.class);
+			Constructor<?> ctor = clazz.getConstructor();
 			return (Task)ctor.newInstance();
 		}
 	}
@@ -96,7 +102,7 @@ public class RhinosNLP {
 	    List<String> patterns = Arrays.asList(patternCSV.split("\\s*,\\s*"));
 	    String temp;
 	    for (String pattern : patterns) {
-	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_ACTION);
+	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_TASKHANDLER);
 	    	
 	    	TargetPattern targetPattern = new TargetPattern(pattern, temp);
 	    	
@@ -188,7 +194,9 @@ public class RhinosNLP {
 	    			}
 	    		}
 	    		
-	    		if (systemMatched.isEmpty())
+	    		boolean blah = targetPattern.hasSystemSetup();
+	    		
+	    		if (targetPattern.hasSystemSetup() && systemMatched.isEmpty())
 	    			continue;
 	    		
 	    		// create task
