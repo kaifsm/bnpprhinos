@@ -68,7 +68,7 @@ public class AIMsgProcessor implements Runnable {
 	}
 
 	void loadUserConfig() throws Exception {
-		URL url = getClass().getResource("RhinosUsers&Profiles.json");
+		URL url = getClass().getClassLoader().getResource("RhinosUsers&Profiles.json");
 		System.out.println("Loading users & profiles from file " + url.getPath());
 		JsonNode allNodes = JsonLoader.fromURL(url);
 
