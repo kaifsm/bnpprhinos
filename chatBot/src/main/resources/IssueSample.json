@@ -1,8 +1,0 @@
-{"issue type":"NetworkDisconnection",
-"impacted flows":{"origin":"institutional clients","flow type":"FnO"},
-"hostname":"bnpserver001",
-"impacted systems":["OMS","AlgoEngine"],
-"impacted clients":["aladdin","jasmine"],
-"impacted markets":["HK","JP"],
-"pnl":10000,
-"timestamp":"Thu May 31 23:41:34 HKT 2018"}

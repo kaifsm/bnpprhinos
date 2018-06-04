@@ -2,6 +2,7 @@ package chatbot.ai_event.processor.datamodel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -30,8 +31,13 @@ public class Filter {
 		List<String> result = new ArrayList<String>();
 		JsonNode criteriaNode = filterNode.get(incidentAttibute);
 		if (criteriaNode != null) {
-			Consumer<JsonNode> criteriaValueConsumer = (JsonNode criteriaValue) -> result.add(criteriaValue.asText());
-			criteriaNode.forEach(criteriaValueConsumer);
+			if (criteriaNode.isArray()) {
+				Consumer<JsonNode> criteriaValueConsumer = (JsonNode criteriaValue) -> result
+						.add(criteriaValue.asText());
+				criteriaNode.forEach(criteriaValueConsumer);
+			} else {
+				result.add(criteriaNode.asText());
+			}
 		}
 		return result;
 	}
@@ -48,9 +54,12 @@ public class Filter {
 				if (incidentCriteriaNode.isArray()) {
 					ArrayNode impacts = (ArrayNode) incidentCriteriaNode;
 					for (String criteriaValue : pair.getValue()) {
-						if (impacts.has(criteriaValue)) {
-							haveAmatch = true;
-							break;
+						Iterator<JsonNode> it = impacts.iterator();
+						while (it.hasNext()) {
+							if (criteriaValue.equalsIgnoreCase(it.next().asText())) {
+								haveAmatch = true;
+								break;
+							}
 						}
 					}
 				} else if (incidentCriteriaNode.isInt()) {

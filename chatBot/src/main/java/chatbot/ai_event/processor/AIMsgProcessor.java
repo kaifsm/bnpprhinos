@@ -1,7 +1,10 @@
 package chatbot.ai_event.processor;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +13,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.JsonLoader;
 
 import chatbot.ai_event.processor.datamodel.Filter;
@@ -18,7 +26,10 @@ import chatbot.ai_event.processor.datamodel.Profile;
 import chatbot.ai_event.processor.datamodel.RoomUtil;
 import chatbot.ai_event.processor.datamodel.RoomWrapper;
 import chatbot.ai_event.processor.datamodel.User;
+import clients.symphony.api.constants.CommonConstants;
+import clients.symphony.api.constants.PodConstants;
 import exceptions.SymClientException;
+import exceptions.UnauthorizedException;
 import model.OutboundMessage;
 import model.Room;
 import model.RoomInfo;
@@ -28,12 +39,19 @@ public class AIMsgProcessor implements Runnable {
 
 	public static LinkedBlockingQueue<JsonNode> messageQueue = new LinkedBlockingQueue<JsonNode>();
 
-	public static void main(String[] args) {
-		AIMsgProcessor app = new AIMsgProcessor();
-		try {
-			app.loadUserConfig();
-			app.processIncidentFromJsonFile();
+	private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
+	public static void main(String[] args) {
+		Rhinos app = new Rhinos(true);
+		// AIMsgProcessor app = new AIMsgProcessor();
+		try {
+			 //File file = new File("C:\\Users\\Hack-1\\bnpprhinos\\chatBot\\src\\main\\resources\\RepeatedCancels.json");
+			File file = new File("C:\\Users\\Hack-1\\bnpprhinos\\chatBot\\src\\main\\resources\\MarketDataSlowness.json");
+			JsonNode incidentNode = JsonLoader.fromFile(file);
+			messageQueue.put(incidentNode);
+
+			Thread.sleep(10000);
+			messageQueue.put(incidentNode);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -44,7 +62,7 @@ public class AIMsgProcessor implements Runnable {
 	}
 
 	void processIncidentFromJsonFile() throws IOException, SymClientException {
-		URL url = getClass().getResource("IssueSample.json");
+		URL url = getClass().getClassLoader().getResource("IssueSample.json");
 		JsonNode incidentNode = JsonLoader.fromURL(url);
 		processIncident(incidentNode);
 	}
@@ -77,7 +95,8 @@ public class AIMsgProcessor implements Runnable {
 			System.out.println("Mssing Incident attributes !!!");
 			throw new Exception("Missing Incident attributes !!!");
 		}
-		Consumer<JsonNode> criteriaConsumer = (JsonNode criteriaNode) -> Filter.addIncidentAttribute(criteriaNode.asText());
+		Consumer<JsonNode> criteriaConsumer = (JsonNode criteriaNode) -> Filter
+				.addIncidentAttribute(criteriaNode.asText());
 		allNodes.get("Incident attributes").forEach(criteriaConsumer);
 
 		// load Profiles
@@ -101,7 +120,7 @@ public class AIMsgProcessor implements Runnable {
 
 		System.out.println("Process issue " + incidentNode.get("issue type"));
 		String roomKey = RoomUtil.getRoomKey(incidentNode);
-		String roomName = "Alert " + roomKey;
+		String roomName = roomKey + " " + LocalDateTime.now().format(formatter);
 
 		// Check if room already exist
 		if (RoomUtil.getRooms().containsKey(roomKey)) {
@@ -123,16 +142,23 @@ public class AIMsgProcessor implements Runnable {
 		System.out.println("Create new room " + roomKey);
 		Room room = new Room();
 		room.setName(roomName);
-		room.setDescription("test");
+		room.setDescription(roomName);
 		room.setDiscoverable(true);
 		room.setPublic(true);
 		room.setViewHistory(true);
-		RoomInfo roomInfo = RoomUtil.getBotClient().getStreamsClient().createRoom(room);
-		RoomUtil.getRooms().put(roomKey, new RoomWrapper(roomInfo, incidentNode, roomKey));
-		if (roomInfo == null) {
-			System.out.println("Failed to create room!!");
-			return;
+		RoomInfo roomInfo = null;
+		try {
+			roomInfo = RoomUtil.getBotClient().getStreamsClient().createRoom(room);
+		} catch (IllegalStateException e) {
+			System.out.println("Failed to create room ! already exist ?");
+			//roomInfo = createRoom(room);
 		}
+		if (roomInfo == null) {
+			System.out.println("Failed to create room, already exist ?");
+			return;
+			//roomInfo = createRoom(room);
+		}
+		RoomUtil.getRooms().put(roomKey, new RoomWrapper(roomInfo, incidentNode, roomKey));
 		// Add impacted users
 		for (UserInfo user : impactedUsers) {
 			System.out.println("Add user " + user.getEmailAddress());
@@ -142,8 +168,28 @@ public class AIMsgProcessor implements Runnable {
 
 		// Send welcome message
 		OutboundMessage message = new OutboundMessage();
-		message.setMessage("First occurence at " + incidentNode.get("timestamp"));
+		message.setMessage(printIncidentDescription(incidentNode));
+		// message.setMessage("First occurence at " + incidentNode.get("timestamp"));
 		RoomUtil.getBotClient().getMessagesClient().sendMessage(roomInfo.getRoomSystemInfo().getId(), message);
+
+	}
+
+	static String printIncidentDescription(JsonNode incidentNode) {
+		/*
+		 * StringBuffer description = new StringBuffer(); Consumer<JsonNode>
+		 * incidentAttibuteConsumer = (JsonNode incidentAttibute) -> description
+		 * .append(incidentAttibute.asText()).append(":");
+		 * //.append(incidentNode.get(incidentAttibute.asText()).asText()).append("\n");
+		 * incidentNode.forEach(incidentAttibuteConsumer); return
+		 * description.toString();
+		 */
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			Object json = mapper.readValue(incidentNode.toString(), Object.class);
+			return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json);
+		} catch (Exception e) {
+			return "Sorry, pretty print didn't work";
+		}
 
 	}
 
@@ -161,6 +207,26 @@ public class AIMsgProcessor implements Runnable {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public RoomInfo createRoom(Room room) throws SymClientException {
+		Response response = RoomUtil.getBotClient().getPodClient()
+				.target(CommonConstants.HTTPSPREFIX + RoomUtil.getBotClient().getConfig().getPodHost() + ":"
+						+ RoomUtil.getBotClient().getConfig().getPodPort())
+				.path(PodConstants.CREATEROOM).request(MediaType.APPLICATION_JSON)
+				.header("sessionToken", RoomUtil.getBotClient().getSymAuth().getSessionToken())
+				.post(Entity.entity(room, MediaType.APPLICATION_JSON));
+		RoomInfo roomInfo = response.readEntity(RoomInfo.class);
+		// if (response.getStatusInfo().getFamily() !=
+		// Response.Status.Family.SUCCESSFUL) {
+		// try {
+		// handleError(response, RoomUtil.getBotClient());
+		// } catch (UnauthorizedException ex){
+		// return createRoom(room);
+		// }
+		// return null;
+		// }
+		return roomInfo;
 	}
 
 }

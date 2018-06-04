@@ -31,7 +31,7 @@
 			"Profile name": "APS Market Access",
 			"Notification filter": {
 				"issue type": [
-					"NetworkDisconnection",
+					"NetworkDown",
 					"RepeatedRejects"
 				],
 				"impacted systems": [
@@ -44,7 +44,8 @@
 			"Notification filter": {
 				"issue type": [
 					"MarketDataSlowness",
-					"MarketDataUnavailable"
+					"MarketDataUnavailable",
+					"NetworkDown"
 				],
 				"impacted systems": [
 					"MarketAccess"
@@ -55,7 +56,7 @@
 			"Profile name": "Infrastructure",
 			"Notification filter": {
 				"issue type": [
-					"NetworkDisconnection",
+					"NetworkDown",
 					"ServerDown"
 				]
 			}
@@ -117,7 +118,7 @@
 			"Name": "Quentin",
 			"Email": "quentin.courtois@asia.bnpparibas.com",
 			"Profiles": [
-				"APS Market Access"
+				"APS Agency Cash"
 			],
 			"Notifications": "on"
 		}

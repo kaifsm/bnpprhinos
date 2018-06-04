@@ -27,10 +27,10 @@ import com.github.fge.jackson.JsonLoader;
 public class Rhinos {
 
 	public static void main(String[] args) {
-		Rhinos app = new Rhinos();
+		Rhinos app = new Rhinos(false);
 	}
 
-	Rhinos() {
+	Rhinos(boolean nonBlocking) {
 
 		try {
 			connectSymphony();
@@ -46,8 +46,12 @@ public class Rhinos {
 				});
 			}).start();
 
-			// Main thread process AI messages
-			(new AIMsgProcessor()).run();
+			if (nonBlocking) {
+				(new AIMsgProcessor()).start();
+			} else {
+				// Main thread process AI messages
+				(new AIMsgProcessor()).run();
+			}
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

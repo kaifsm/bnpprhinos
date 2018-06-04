@@ -1,0 +1,8 @@
+{"issue type":"NetworkDown",
+"impacted flows":["Cash"],
+"hostname":"bnpphkserver01",
+"impacted systems":["FIXGateway"],
+"impacted clients":["BNPPInternal"],
+"impacted markets":["HKEX","SGX"],
+"pnl":850000,
+"timestamp":"Sun Jun 03 23:04:19 HKT 2018"}
