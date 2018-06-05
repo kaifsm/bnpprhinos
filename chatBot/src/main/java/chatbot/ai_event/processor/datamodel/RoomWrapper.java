@@ -31,6 +31,9 @@ public class RoomWrapper {
 		this.roomInfo = roomInfo;
 		this.incidentNode = incidentNode;
 		this.roomKey = roomKey;
+		
+		//StatusWrapper st = new StatusWrapper(System.currentTimeMillis(), "Room created");
+		//statusList.add(st);
 	}
 
 	RoomInfo roomInfo;
@@ -46,6 +49,7 @@ public class RoomWrapper {
 	public void setStatusList(List<StatusWrapper> statusList) {
 		this.statusList = statusList;
 	}
+	
 	RoomWrapper()
 	{
 		StatusWrapper st = new StatusWrapper(System.currentTimeMillis(), "Room created");
@@ -57,7 +61,8 @@ public class RoomWrapper {
 	}
 	public void setStatus(String status) {
 		this.status = status;
-		StatusWrapper st = new StatusWrapper(System.currentTimeMillis(), "Changed status to:" + status);
+		String statusInHistory = status.substring("the latest status is".length());
+		StatusWrapper st = new StatusWrapper(System.currentTimeMillis(), "Changed status to:" + statusInHistory);
 		statusList.add(st);
 	}
 	public String getTicket() {
