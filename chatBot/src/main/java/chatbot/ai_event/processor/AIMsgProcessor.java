@@ -7,8 +7,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -140,7 +142,7 @@ public class AIMsgProcessor implements Runnable {
 		}
 
 		// Get user list
-		List<String> impactedProfiles = new ArrayList<String>();
+		Set<String> impactedProfiles = new HashSet<String>();
 		List<UserInfo> impactedUsers = User.getImpactedUsers(incidentNode, impactedProfiles);
 
 		if (impactedUsers.isEmpty()) {
@@ -200,9 +202,14 @@ public class AIMsgProcessor implements Runnable {
 
 		// Send list of involved teams
 		message = new OutboundMessage();
-		StringBuffer msgBuf = new StringBuffer().append("Adding following teams in this chat room:\n");
+		StringBuilder msgBuf = new StringBuilder().append("Adding following teams in this chat room:\n");
+		boolean firstAdd = true;
 		for (String profileName : impactedProfiles) {
-			msgBuf.append(profileName).append(", ");
+			if (firstAdd) {
+				msgBuf.append(profileName);
+				firstAdd = false;
+			} else
+				msgBuf.append(", ").append(profileName);
 		}
 		message.setMessage(msgBuf.toString());
 		RoomUtil.getBotClient().getMessagesClient().sendMessage(roomInfo.getRoomSystemInfo().getId(), message);

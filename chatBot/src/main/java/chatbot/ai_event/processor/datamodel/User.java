@@ -2,6 +2,7 @@ package chatbot.ai_event.processor.datamodel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javax.ws.rs.core.NoContentException;
@@ -52,7 +53,7 @@ public class User {
 		}
 	}
 
-	public static List<UserInfo> getImpactedUsers(JsonNode incident, List<String> impactedProfiles) {
+	public static List<UserInfo> getImpactedUsers(JsonNode incident, Set<String> impactedProfiles) {
 		List<UserInfo> impactedUsers = new ArrayList<UserInfo>();
 
 		for (User user : users) {
@@ -63,7 +64,7 @@ public class User {
 		return impactedUsers;
 	}
 
-	boolean notify(JsonNode incident, List<String> impactedProfiles) {
+	boolean notify(JsonNode incident, Set<String> impactedProfiles) {
 		for (Profile profile : profiles) {
 			if (profile.filter.match(incident)) {
 				impactedProfiles.add(profile.name);
