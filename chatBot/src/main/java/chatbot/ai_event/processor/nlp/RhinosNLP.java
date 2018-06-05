@@ -30,6 +30,7 @@ public class RhinosNLP {
 	protected static final String PATTERN_KEY_SUFFIX_TASKHANDLER = ".taskhandler";
 	protected static final String PATTERN_KEY_SUFFIX_VERBS = ".verbs";
 	protected static final String PATTERN_KEY_SUFFIX_NOUNS = ".nouns";
+	protected static final String PATTERN_KEY_SUFFIX_ADJECTIVES = ".adjectives";
 	protected static final String PATTERN_KEY_SUFFIX_QUESTION_TAG = ".questionTag";
 	protected static final String PATTERN_KEY_SUFFIX_NO_QUESTION_TAG = ".NOquestionTag";
 	protected static final String PATTERN_KEY_SUFFIX_SYSTEMS = ".systems";
@@ -46,6 +47,7 @@ public class RhinosNLP {
 		
 		protected Set<String> possibleVerbs_ = new HashSet<>();
 		protected Set<String> possibleNouns_ = new HashSet<>();
+		protected Set<String> possibleAdjectives_ = new HashSet<>();
 		protected Set<String> possibleQuestionTags_ = new HashSet<>();
 		protected Set<String> possibleNoQuestionTags_ = new HashSet<>();
 		protected Set<String> possibleSystems_ = new HashSet<>();
@@ -60,6 +62,9 @@ public class RhinosNLP {
 		}
 		public void addPossibleNouns(Collection<String> possibleNouns) {
 			possibleNouns_.addAll(possibleNouns);
+		}
+		public void addPossibleAdjectives(Collection<String> possibleAdjectives) {
+			possibleAdjectives_.addAll(possibleAdjectives);
 		}
 		public void addPossibleSystems(Collection<String> possibleSystems) {
 			for (String possibleSystem : possibleSystems) {
@@ -80,18 +85,28 @@ public class RhinosNLP {
 		public boolean matchNoun(String noun) {
 			return possibleNouns_.contains(noun.toLowerCase());
 		}
+		
+		public boolean hasAdjectiveSetup() {
+			return !(possibleAdjectives_.isEmpty());
+		}
+		public boolean matchAdjective(String adjective) {
+			return possibleAdjectives_.contains(adjective.toLowerCase());
+		}
+		
 		public boolean matchSystem(String system) {
 			return possibleSystems_.contains(system.toLowerCase());
 		}
 		public boolean hasSystemSetup() {
 			return !(possibleSystems_.isEmpty());
 		}
+		
 		public boolean hasQuestionTags() {
 			return !(possibleQuestionTags_.isEmpty());
 		}
 		public boolean matchQuestionTag(String questionTag) {
 			return possibleQuestionTags_.contains(questionTag.toLowerCase());
 		}
+		
 		public boolean hasNoQuestionTags() {
 			return !(possibleNoQuestionTags_.isEmpty());
 		}
@@ -140,6 +155,10 @@ public class RhinosNLP {
 	    		continue;
 	    	targetPattern.addPossibleNouns(Arrays.asList(temp.split("\\s*,\\s*")));
 	    	
+	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_ADJECTIVES).toLowerCase();
+	    	if (temp != null && !temp.isEmpty())
+	    		targetPattern.addPossibleAdjectives(Arrays.asList(temp.split("\\s*,\\s*")));
+	    	
 	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_SYSTEMS).toLowerCase();
 	    	if (temp != null && !temp.isEmpty())
 	    		targetPattern.addPossibleSystems(Arrays.asList(temp.split("\\s*,\\s*")));
@@ -169,6 +188,7 @@ public class RhinosNLP {
 	    
 	    List<String> verbs = new ArrayList<>();
 	    List<String> nouns = new ArrayList<>();
+	    List<String> adjectives = new ArrayList<>();
 	    List<String> questionTags = new ArrayList<>();
 	
 	    for (CoreMap sentence : sentences) {
@@ -199,6 +219,10 @@ public class RhinosNLP {
             		nouns.add(word);
 	            } else if (EPartOfSpeech.Wh_Pronoun.equals(EPartOfSpeech.parse(pos))) {
 	            	questionTags.add(word);
+	            } else if (EPartOfSpeech.AdverbSuperlative.equals(EPartOfSpeech.parse(pos)) ||
+	            		EPartOfSpeech.AdverbComparative.equals(EPartOfSpeech.parse(pos)) ||
+	            		EPartOfSpeech.Adverb.equals(EPartOfSpeech.parse(pos))) {
+	            	adjectives.add(word);
 	            }
 	        }
 	    }
@@ -231,6 +255,16 @@ public class RhinosNLP {
 	    			}
 	    		}
 	    		if (!nounMatched)
+	    			continue;
+	    		
+	    		List<String> adjectiveMatched = new ArrayList<>();
+	    		for (String adjective : adjectives) {
+	    			if (targetPattern.matchQuestionTag(adjective)) {
+	    				adjectiveMatched.add(adjective);
+	    			}
+	    		}
+	    		
+	    		if (targetPattern.hasAdjectiveSetup() && adjectiveMatched.isEmpty())
 	    			continue;
 	    		
 	    		List<String> questionTagMatched = new ArrayList<>();
