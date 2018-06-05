@@ -113,6 +113,7 @@ class MyFrame extends JFrame {
         static String flowTypeKey = "flow type";
         static String pnlKey = "pnl";
         static String timestampKey = "timestamp";
+        static String latencyInMs = "LatencyInMs";
     }
 
     MyFrame()
@@ -320,6 +321,11 @@ class MyFrame extends JFrame {
 		    	  incidentJsonObject.put( JsonKeys.pnlKey, EventInfo.pnlTextField.getText() );
 		    	  long endTimeInNano = System.nanoTime();
 		    	  incidentJsonObject.put( JsonKeys.timestampKey, (endTimeInNano-startTimeInNano) );
+		    	  if(EventInfo.issueTypeTextField.getText().compareTo("MarketDataSlowness") == 0)
+                  {
+                      incidentJsonObject.put( JsonKeys.latencyInMs, "500" );
+                  }
+
 	    	  }
 	    	  catch(Exception ex)
 	    	  {
