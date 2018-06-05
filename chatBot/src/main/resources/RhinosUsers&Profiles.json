@@ -57,7 +57,8 @@
 			"Notification filter": {
 				"issue type": [
 					"NetworkDown",
-					"ServerDown"
+					"ServerDown",
+					"MarketDataSlowness"
 				]
 			}
 		},

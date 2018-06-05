@@ -13,7 +13,7 @@ import exceptions.SymClientException;
 import model.UserInfo;
 
 public class User {
-	
+
 	static List<User> users = new ArrayList<User>();
 
 	public static List<User> getUsers() {
@@ -36,11 +36,9 @@ public class User {
 		};
 		usersNodes.get("Profiles").forEach(profileConsumer);
 	}
-	
-	public static void updateUserInfo ( SymBotClient botClient) throws NoContentException, SymClientException
-	{
-		for (User user : users)
-		{
+
+	public static void updateUserInfo(SymBotClient botClient) throws NoContentException, SymClientException {
+		for (User user : users) {
 			user.setUserInfo(botClient.getUsersClient().getUserFromEmail(user.email, true));
 		}
 	}
@@ -53,33 +51,29 @@ public class User {
 			profiles.add(p);
 		}
 	}
-	
-	public static List<UserInfo> getImpactedUsers (JsonNode incident)
-	{
+
+	public static List<UserInfo> getImpactedUsers(JsonNode incident, List<String> impactedProfiles) {
 		List<UserInfo> impactedUsers = new ArrayList<UserInfo>();
-		
-		for (User user : users)
-		{
-			if (user.notify(incident))
-			{
+
+		for (User user : users) {
+			if (user.notify(incident, impactedProfiles)) {
 				impactedUsers.add(user.userInfo);
 			}
 		}
 		return impactedUsers;
 	}
-	
-	boolean notify ( JsonNode incident )
-	{
-		for (Profile profile : profiles)
-		{
-			if ( profile.filter.match(incident) )
+
+	boolean notify(JsonNode incident, List<String> impactedProfiles) {
+		for (Profile profile : profiles) {
+			if (profile.filter.match(incident)) {
+				impactedProfiles.add(profile.name);
 				return true;
+			}
 		}
 		return false;
 	}
-	
-	public static void addUser(User user)
-	{
+
+	public static void addUser(User user) {
 		users.add(user);
 	}
 
@@ -111,7 +105,7 @@ public class User {
 	String email;
 	List<Profile> profiles;
 	boolean notifications;
-	UserInfo userInfo; //SymphonyUserInfo
+	UserInfo userInfo; // SymphonyUserInfo
 
 	public UserInfo getUserInfo() {
 		return userInfo;
