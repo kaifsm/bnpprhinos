@@ -1,6 +1,8 @@
 package chatbot.ai_event.processor.datamodel;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +35,13 @@ public class RoomUtil {
 		botClient = botClient_;
 	}
 
+
+	public static void sendMessage(String streamId, String msg) throws SymClientException {
+		OutboundMessage messageOut = new OutboundMessage();
+		messageOut.setMessage(msg);
+		botClient.getMessagesClient().sendMessage(streamId, messageOut);
+	}
+	
 	public static void closeRoom(String streamId) throws SymClientException {
 		
 		//Remove room from the bot cache
@@ -42,18 +51,14 @@ public class RoomUtil {
 			RoomWrapper room = roomEntry.getValue();
 			if (room.getRoomInfo().getRoomSystemInfo().getId().equals(streamId) && room.getTicket() != null) {
 				//Close incident ticket
-				OutboundMessage messageOut = new OutboundMessage();
 				String ticketNo = "ITM" + String.format("%06d", serviceNowTicketCounter);
-				messageOut.setMessage("Updating and resolving incident ticket " + ticketNo);
-				botClient.getMessagesClient().sendMessage(streamId, messageOut);
+				sendMessage(streamId, "Updating and resolving incident ticket " + ticketNo);
 				break;
 			}
 		}
 		
 		//Deactivate in Symphony
-		OutboundMessage messageOut = new OutboundMessage();
-		messageOut.setMessage("Closing room now");
-		botClient.getMessagesClient().sendMessage(streamId, messageOut);
+		sendMessage(streamId, "Closing room now");
 		botClient.getStreamsClient().deactivateRoom(streamId);
 		
 	}
@@ -80,12 +85,6 @@ public class RoomUtil {
 		return name.toString().trim();
 	}
 
-	public static void sendMessage(String streamId, String msg) throws SymClientException {
-		OutboundMessage messageOut = new OutboundMessage();
-		messageOut.setMessage(msg);
-		botClient.getMessagesClient().sendMessage(streamId, messageOut);
-	}
-
 	public static String getserviceNowTicketId() {
 		synchronized (serviceNowTicketCounter) {
 			return "ITM" + String.format("%06d", ++serviceNowTicketCounter);
@@ -94,10 +93,8 @@ public class RoomUtil {
 
 	public static void createServiceNowTicket(String streamId) throws SymClientException {
 		// botClient.getBotClient().getStreamsClient().getRoomInfo(streamId);
-		OutboundMessage messageOut = new OutboundMessage();
 		String ticket = getserviceNowTicketId();
-		messageOut.setMessage("Service now ticket created " + ticket);
-		botClient.getMessagesClient().sendMessage(streamId, messageOut);
+		sendMessage(streamId, "Service now ticket created " + ticket);
 		
 		//Update ticket in room
 		for (RoomWrapper room : rooms.values()) {
@@ -127,14 +124,36 @@ public class RoomUtil {
 	
 	static public void publishStatus(String streamId_) throws SymClientException
 	{
+//		if (getRoom(streamId_)!= null) 
+//		{
+//			if (getRoom(streamId_).getStatus() == null)
+//				sendMessage(streamId_, "Good question....I don't know...hm...Anyone?");
+//			else
+//				sendMessage(streamId_, getRoom(streamId_).getStatus());
+//		}
+		
+		publishStatusHistory(streamId_);
+	}
+		
+	static public void publishStatusHistory(String streamId_) throws SymClientException
+	{
 		if (getRoom(streamId_)!= null) 
 		{
-		OutboundMessage messageOut = new OutboundMessage();
-		if (getRoom(streamId_).getStatus() == null)
-			messageOut.setMessage("Good question....I don't know...hm...Anyone?");
-		else
-			messageOut.setMessage(getRoom(streamId_).getStatus());
-		botClient.getMessagesClient().sendMessage(streamId_, messageOut);
+			if (getRoom(streamId_).getStatusList() == null || getRoom(streamId_).getStatusList().isEmpty())
+				sendMessage(streamId_, "Good question....I don't know...hm...Anyone?");
+			else {
+				StringBuilder messageBuffer = new StringBuilder();
+				messageBuffer.append("<table>");
+				messageBuffer.append("<tr><th>Timestamp</th><th>Audit Trail</th></tr>");
+				for (StatusWrapper status : getRoom(streamId_).getStatusList() ) {
+					messageBuffer.append("<tr><td>").append(new SimpleDateFormat("HH:mm:ss").format(new Date(status.ts))).append("</td><td>");
+					messageBuffer.append(status.status).append("</td></tr>");
+				}
+				messageBuffer.append("</table>");
+				
+				sendMessage(streamId_, messageBuffer.toString());
+				
+			}
 		}
 	}
 }

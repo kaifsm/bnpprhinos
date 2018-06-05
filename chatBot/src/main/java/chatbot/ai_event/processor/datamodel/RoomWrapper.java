@@ -1,5 +1,8 @@
 package chatbot.ai_event.processor.datamodel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import model.RoomInfo;
@@ -35,19 +38,35 @@ public class RoomWrapper {
 	String roomKey;
 	String ticket = null;
 	String status = null;
+	List<StatusWrapper> statusList = new ArrayList<StatusWrapper>();
 	
+	public List<StatusWrapper> getStatusList() {
+		return statusList;
+	}
+	public void setStatusList(List<StatusWrapper> statusList) {
+		this.statusList = statusList;
+	}
+	RoomWrapper()
+	{
+		StatusWrapper st = new StatusWrapper(System.currentTimeMillis(), "Room created");
+		statusList.add(st);
+	}
 	
 	public String getStatus() {
 		return status;
 	}
 	public void setStatus(String status) {
 		this.status = status;
+		StatusWrapper st = new StatusWrapper(System.currentTimeMillis(), "Changed status to:" + status);
+		statusList.add(st);
 	}
 	public String getTicket() {
 		return ticket;
 	}
 	public void setTicket(String ticket) {
 		this.ticket = ticket;
+		StatusWrapper st = new StatusWrapper(System.currentTimeMillis(), "Created servicenow ticet:" + ticket);
+		statusList.add(st);
 	}
 
 }
