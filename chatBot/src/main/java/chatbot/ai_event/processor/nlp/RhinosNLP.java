@@ -30,6 +30,8 @@ public class RhinosNLP {
 	protected static final String PATTERN_KEY_SUFFIX_TASKHANDLER = ".taskhandler";
 	protected static final String PATTERN_KEY_SUFFIX_VERBS = ".verbs";
 	protected static final String PATTERN_KEY_SUFFIX_NOUNS = ".nouns";
+	protected static final String PATTERN_KEY_SUFFIX_QUESTION_TAG = ".questionTag";
+	protected static final String PATTERN_KEY_SUFFIX_NO_QUESTION_TAG = ".NOquestionTag";
 	protected static final String PATTERN_KEY_SUFFIX_SYSTEMS = ".systems";
 	
 	protected StanfordCoreNLP pipeline_;
@@ -44,6 +46,8 @@ public class RhinosNLP {
 		
 		protected Set<String> possibleVerbs_ = new HashSet<>();
 		protected Set<String> possibleNouns_ = new HashSet<>();
+		protected Set<String> possibleQuestionTags_ = new HashSet<>();
+		protected Set<String> possibleNoQuestionTags_ = new HashSet<>();
 		protected Set<String> possibleSystems_ = new HashSet<>();
 		
 		public TargetPattern(String key, String taskHandlerClass) {
@@ -63,7 +67,13 @@ public class RhinosNLP {
 					possibleSystems_.add(possibleSystem);
 			}
 		}
-		
+		public void addPossibleQuestionTag(Collection<String> possibleQuestionTag) {
+			possibleQuestionTags_.addAll(possibleQuestionTag);
+		}
+		public void addPossibleNoQuestionTag(Collection<String> possibleNoQuestionTag) {
+			possibleNoQuestionTags_.addAll(possibleNoQuestionTag);
+		}
+				
 		public boolean matchVerb(String verb) {
 			return possibleVerbs_.contains(verb.toLowerCase());
 		}
@@ -75,6 +85,15 @@ public class RhinosNLP {
 		}
 		public boolean hasSystemSetup() {
 			return !(possibleSystems_.isEmpty());
+		}
+		public boolean hasQuestionTags() {
+			return !(possibleQuestionTags_.isEmpty());
+		}
+		public boolean hasNoQuestionTags() {
+			return !(possibleNoQuestionTags_.isEmpty());
+		}
+		public boolean matchQuestionTag(String questionTag) {
+			return possibleQuestionTags_.contains(questionTag.toLowerCase());
 		}
 		
 		public Task createTaskInstance() throws ClassNotFoundException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -103,17 +122,32 @@ public class RhinosNLP {
 	    String temp;
 	    for (String pattern : patterns) {
 	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_TASKHANDLER);
+	    	if (temp == null)
+	    		continue;
 	    	
 	    	TargetPattern targetPattern = new TargetPattern(pattern, temp);
 	    	
 	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_VERBS).toLowerCase();
+	    	if (temp == null)
+	    		continue;
 	    	targetPattern.addPossibleVerbs(Arrays.asList(temp.split("\\s*,\\s*")));
 	    	
 	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_NOUNS).toLowerCase();
+	    	if (temp == null)
+	    		continue;
 	    	targetPattern.addPossibleNouns(Arrays.asList(temp.split("\\s*,\\s*")));
 	    	
 	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_SYSTEMS).toLowerCase();
-	    	targetPattern.addPossibleSystems(Arrays.asList(temp.split("\\s*,\\s*")));
+	    	if (temp != null && !temp.isEmpty())
+	    		targetPattern.addPossibleSystems(Arrays.asList(temp.split("\\s*,\\s*")));
+	    	
+	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_QUESTION_TAG);
+	    	if (temp != null && !temp.isEmpty())
+	    		targetPattern.addPossibleQuestionTag(Arrays.asList(temp.split("\\s*,\\s*")));
+	    	
+	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_NO_QUESTION_TAG);
+	    	if (temp != null && !temp.isEmpty())
+	    		targetPattern.addPossibleNoQuestionTag(Arrays.asList(temp.split("\\s*,\\s*")));
 	    	
 	    	targetPatterns_.add(targetPattern);
 	    	
@@ -132,6 +166,7 @@ public class RhinosNLP {
 	    
 	    List<String> verbs = new ArrayList<>();
 	    List<String> nouns = new ArrayList<>();
+	    List<String> questionTags = new ArrayList<>();
 	
 	    for (CoreMap sentence : sentences) {
 	        // traversing the words in the current sentence
@@ -147,12 +182,20 @@ public class RhinosNLP {
 	            logger.debug(String.format("Print: word: [%s] pos: [%s] ne: [%s]", word, pos, ne));
 	            System.out.println(String.format("Print: word: [%s] pos: [%s] ne: [%s]", word, pos, ne));
 	            
-	            if (EPartOfSpeech.VerbBaseForm.equals(EPartOfSpeech.parse(pos))) {
+	            if (EPartOfSpeech.VerbBaseForm.equals(EPartOfSpeech.parse(pos)) ||
+            		EPartOfSpeech.VerbPastTense.equals(EPartOfSpeech.parse(pos)) ||
+            		EPartOfSpeech.VerbGerundOrPresentParticiple.equals(EPartOfSpeech.parse(pos)) ||
+            		EPartOfSpeech.VerbPastParticiple.equals(EPartOfSpeech.parse(pos)) ||
+            		EPartOfSpeech.VerbNon_3rdPersonSingularPresent.equals(EPartOfSpeech.parse(pos)) ||
+            		EPartOfSpeech.VerbN3rdPersonSingularPresent.equals(EPartOfSpeech.parse(pos))    		) {
             		verbs.add(word);
 	            } else if (EPartOfSpeech.NounSingularOrMass.equals(EPartOfSpeech.parse(pos)) ||
 	            			EPartOfSpeech.NounPlural.equals(EPartOfSpeech.parse(pos)) ||
-	            			EPartOfSpeech.ProperNounSingular.equals(EPartOfSpeech.parse(pos))) {
+	            			EPartOfSpeech.ProperNounSingular.equals(EPartOfSpeech.parse(pos)) ||
+	            			EPartOfSpeech.ProperNounPlural.equals(EPartOfSpeech.parse(pos))) {
             		nouns.add(word);
+	            } else if (EPartOfSpeech.Wh_Pronoun.equals(EPartOfSpeech.parse(pos))) {
+	            	questionTags.add(word);
 	            }
 	        }
 	    }
@@ -187,14 +230,25 @@ public class RhinosNLP {
 	    		if (!nounMatched)
 	    			continue;
 	    		
+	    		List<String> questionTagMatched = new ArrayList<>();
+	    		for (String questionTag : questionTags) {
+	    			if (targetPattern.matchQuestionTag(questionTag)) {
+	    				questionTagMatched.add(questionTag);
+	    			}
+	    		}
+	    		
+	    		if (targetPattern.hasQuestionTags() && questionTagMatched.isEmpty())
+	    			continue;
+	    		
+	    		if (targetPattern.hasNoQuestionTags() && !questionTagMatched.isEmpty())
+	    			continue;
+	    		
 	    		List<String> systemMatched = new ArrayList<>();
 	    		for (String noun : nouns) {
 	    			if (targetPattern.matchSystem(noun)) {
 	    				systemMatched.add(noun);
 	    			}
 	    		}
-	    		
-	    		boolean blah = targetPattern.hasSystemSetup();
 	    		
 	    		if (targetPattern.hasSystemSetup() && systemMatched.isEmpty())
 	    			continue;
