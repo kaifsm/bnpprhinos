@@ -3,181 +3,180 @@ import org.json.JSONObject;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-class MyFrame extends JFrame 
-{
-	private static final long serialVersionUID = -4078361198228290265L;
+class MyFrame extends JFrame {
+    private static final long serialVersionUID = -4078361198228290265L;
 
-	static final int highVolumeMsgNum = 100000;
-	
-	static final int TEXT_FIELD_SIZE = 30;
+    static final int TEXT_FIELD_SIZE = 30;
 
-	private ImageIcon rhinoIcon = new ImageIcon("resources/rhino.png");
-	
-	private static final JButton repeatedRejections = new JButton("Repeated rejections");
-	private static final JButton repeatedCancellations = new JButton("Repeated cancellations");
-	private static final JButton highVolume = new JButton("High volume");
-	private static final JButton networkDown = new JButton("Network down");
-	private static final JButton incorrectPriceRange = new JButton("Incorrect price range");
-	private static final JButton failover = new JButton("Failover");
-	private static final JButton marketDataDelay = new JButton("Market data delay");
+    private ImageIcon rhinoIcon = new ImageIcon("resources/rhino.png");
 
-	private JTextField serverAddressTextField = new JTextField();
-	private JTextField serverPortTextField    = new JTextField();
+    private JTextField serverAddressTextField = new JTextField();
+    private JTextField serverPortTextField = new JTextField();
 
-	private JLabel serverAddressLabel = new JLabel("Server address :");
-	private JLabel serverPortLabel    = new JLabel("Server Port :");
-	private JLabel simulationsLabel   = new JLabel("Simulations");
+    private JLabel serverAddressLabel = new JLabel("Server address :");
+    private JLabel serverPortLabel = new JLabel("Server Port :");
+    private JLabel simulationsLabel = new JLabel("Simulations");
 
-	private JTextArea eventsLogTextArea = new JTextArea("Events log", 200, 600);
+    private JTextArea eventsLogTextArea = new JTextArea("Events log", 200, 600);
 
     private static int VERTICAL_STRUT_LENGTH = 5;
-    
-	private String hostIP;
-	private int hostPort;
 
-	private ServerConnection serverConnection;
-	
-	static class EventInfo
-	{
-		static JTextField numberOfEventsTextField 	= new JTextField(TEXT_FIELD_SIZE);
-		static JTextField issueTypeTextField 		= new JTextField(TEXT_FIELD_SIZE);
-	    static JTextField impactedSystemsTextField 	= new JTextField(TEXT_FIELD_SIZE);
-	    static JTextField hostNameTextField 		= new JTextField(TEXT_FIELD_SIZE);
-	    static JTextField impactedMarketsTextField 	= new JTextField(TEXT_FIELD_SIZE);
-	    static JTextField impactedFlowsTextField 	= new JTextField(TEXT_FIELD_SIZE);
-	    static JTextField impactedClientsTextField 	= new JTextField(TEXT_FIELD_SIZE);
-	    static JTextField originTextField 			= new JTextField(TEXT_FIELD_SIZE);
-	    static JTextField flowTypeTextField 		= new JTextField(TEXT_FIELD_SIZE);
-	    static JTextField pnlTextField 				= new JTextField(TEXT_FIELD_SIZE);
+    private String hostIP;
+    private int hostPort;
 
-	    static JLabel numberOfEventsLabel			= new JLabel("Number of events: ");
-		static JLabel issueTypeLabel 				= new JLabel("Issue Type :");
-		static JLabel impactedSystemsLabel     		= new JLabel("Impacted Systems :");
-		static JLabel hostNameLabel   				= new JLabel("Host Name: ");
-		static JLabel impactedMarketsLabel 			= new JLabel("Impacted Markets :");
-		static JLabel impactedFlowsLabel 			= new JLabel("Impacted Flows: ");
-		static JLabel impactedClientsLabel 			= new JLabel("Impacted Clients: ");
-		static JLabel originLabel 					= new JLabel("Issue Origin: ");
-		static JLabel flowTypeLabel 				= new JLabel("Flow Type: ");
-		static JLabel pnlLabel 						= new JLabel("PNL: ");
-	}
-	
-	static class JsonKeys
-	{
-		static String issueTypeKey 		 	= new String("issue type"); 
-		static String impactedSystemsKey 	= new String("impacted systems");
-		static String hostnameKey 		 	= new String("hostname");
-		static String impactedMarketsKey 	= new String("impacted markets");
-		static String impactedFlowsKey 		= new String("impacted flows");
-		static String impactedClientsKey 	= new String("impacted clients");
-		static String originKey 			= new String("origin");
-		static String flowTypeKey 			= new String("flow type");
-		static String pnlKey				= new String("pnl");
-		static String timestampKey			= new String("timestamp");
-	}
-	
-	private static final Map<String, String> caseIDtoissueType; 
-	private static final Map<String, String> caseIDtoNoOfEvents; //easier to use String for the count, because it will be put into a text field
-	private static final Map<String, String> caseIDtoimpactedSystems;
-	private static final Map<String, String> caseIDtoHostname;
-	private static final Map<String, String> caseIDtoImpactedMarkets;
-	private static final Map<String, String> caseIDtoImpactedFlows;
-	private static final Map<String, String> caseIDtoImpactedClients;
-	private static final Map<String, String> caseIDtoOriginText;
-	private static final Map<String, String> caseIDtoFlowType;
-	private static final Map<String, String> caseIDtoPnL;
-	
-	static {
-		caseIDtoissueType = new HashMap<String, String>();
-		caseIDtoissueType.put(repeatedRejections.getText(), "Reject"); //for AI to generate RepeatedRejects message
-		caseIDtoissueType.put(repeatedCancellations.getText(), "Cancel"); //for AI to generate RepeatedCancels message
-		caseIDtoissueType.put(highVolume.getText(), "Exec");   //for AI to generate HighVolume message
-		caseIDtoissueType.put(networkDown.getText(), "NetworkDown");
-		caseIDtoissueType.put(incorrectPriceRange.getText(), "IncorrectPriceRange");
-		caseIDtoissueType.put(failover.getText(), "Failover");
-		caseIDtoissueType.put(marketDataDelay.getText(), "MarketDataSlowness");
-		
-		caseIDtoNoOfEvents = new HashMap<String, String>();
-		caseIDtoNoOfEvents.put(repeatedRejections.getText(), "500");
-		caseIDtoNoOfEvents.put(repeatedCancellations.getText(), "500");
-		caseIDtoNoOfEvents.put(highVolume.getText(), "500");
-		caseIDtoNoOfEvents.put(networkDown.getText(), "1");
-		caseIDtoNoOfEvents.put(incorrectPriceRange.getText(), "1");
-		caseIDtoNoOfEvents.put(failover.getText(), "1");
-		caseIDtoNoOfEvents.put(marketDataDelay.getText(), "1");
-		
-		caseIDtoimpactedSystems = new HashMap<String, String>();
-		caseIDtoimpactedSystems.put(repeatedCancellations.getText(), "AlgoEngine");
-		caseIDtoimpactedSystems.put(networkDown.getText(), "FIXGateway");
-		caseIDtoimpactedSystems.put(marketDataDelay.getText(), "MarketAccess");
-
-		caseIDtoHostname = new HashMap<String, String>();
-		caseIDtoHostname.put(repeatedCancellations.getText(), "bnpphkserver02");
-		caseIDtoHostname.put(networkDown.getText(), "bnpphkserver01");
-		caseIDtoHostname.put(marketDataDelay.getText(), "bnpphkserver03");
-		
-		caseIDtoImpactedClients = new HashMap<String, String>();
-		caseIDtoImpactedClients.put(repeatedCancellations.getText(), "BNPPInternal");
-		caseIDtoImpactedClients.put(networkDown.getText(), "BNPPInternal");
-		caseIDtoImpactedClients.put(marketDataDelay.getText(), "BNPPInternal");
-		
-		caseIDtoImpactedMarkets = new HashMap<String, String>();
-		caseIDtoImpactedMarkets.put(repeatedCancellations.getText(), "HKEX");
-		caseIDtoImpactedMarkets.put(marketDataDelay.getText(), "HKEX");
-		
-		caseIDtoPnL = new HashMap<String, String>();
-		caseIDtoPnL.put(repeatedCancellations.getText(), "3830000");
-		caseIDtoPnL.put(networkDown.getText(), "850000");
-		caseIDtoPnL.put(marketDataDelay.getText(), "1750000");
-		
-		caseIDtoImpactedFlows = new HashMap<String, String>(); 
-		caseIDtoImpactedFlows.put(networkDown.getText(), "Cash");
-		caseIDtoImpactedFlows.put(marketDataDelay.getText(), "Cash");
-		
-		caseIDtoOriginText = new HashMap<String, String>(); 
-		
-		caseIDtoFlowType = new HashMap<String, String>(); 
-		
-//	      caseIDtoimpactedSystems.get(caseID));
-//	      EventInfo.hostNameTextField.setText(caseIDtoHostname.get(caseID));
-//	      EventInfo.impactedMarketsTextField.setText(caseIDtoImpactedMarkets.get(caseID));
-//	      EventInfo.impactedFlowsTextField.setText(caseIDtoImpactedFlows.get(caseID));
-//	      EventInfo.impactedClientsTextField.setText(caseIDtoImpactedClients.get(caseID));
-//	      EventInfo.originTextField.setText(caseIDtoOriginText.get(caseID));
-//	      EventInfo.flowTypeTextField.setText(caseIDtoFlowType.get(caseID));
-//	      EventInfo.pnlTextField.setText(caseIDtoPnL.get(caseID));
-		
-	};
+    private ServerConnection serverConnection;
 
 
+    private Map<String,DefaultValue> caseIdToDefaultValue;
 
-	
-	public MyFrame() 
-	{
-		setTitle("BNPP RHINOS SIMULATOR");
-		setSize(400, 600);
-		setLocation(new Point(300, 200));
-		setLayout(null);
-		setResizable(true);
+    private static final long startTimeInNano = System.nanoTime();
 
-		initComponent();
-		initEvent();
-	}
+    class DefaultValue
+    {
+        String _numberOfEvents;
+        String _issueType;
+        String _impactedSystems;
+        String _hostName;
+        String _impactedMarkets;
+        String _impactedFlows;
+        String _impactedClients;
+        String _origin;
+        String _flowType;
+        String _pnl;
 
-	private void initComponent() {
-		repeatedRejections.setBounds(20, 100, 200, 25);
-		repeatedCancellations.setBounds(20, 130, 200, 25);
-		highVolume.setBounds(20, 160, 200, 25);
-		networkDown.setBounds(20, 190, 200, 25);
-		incorrectPriceRange.setBounds(20, 220, 200, 25);
-		failover.setBounds(20, 250, 200, 25);
-		marketDataDelay.setBounds(20, 280, 200, 25);
+        DefaultValue( String numEvents_, String issueType_, String impactedSystems_, String hostName_,
+                      String impactedMarkets_, String impactedFlows_, String impactedClients_,
+                        String origin_, String flowType_, String pnl_ )
+        {
+            _numberOfEvents = numEvents_;
+            _issueType = issueType_;
+            _impactedMarkets = impactedMarkets_;
+            _impactedSystems = impactedSystems_;
+            _hostName = hostName_;
+            _impactedFlows = impactedFlows_;
+            _impactedClients = impactedClients_;
+            _origin = origin_;
+            _flowType = flowType_;
+            _pnl = pnl_;
+        }
+    }
+
+    private static class Buttons
+    {
+        private static final JButton case1 = new JButton("Repeated rejections");
+        private static final JButton case2 = new JButton("Repeated cancellations");
+        private static final JButton case3 = new JButton("High volume");
+        private static final JButton case4 = new JButton("Network down");
+        private static final JButton case5 = new JButton("Incorrect price range");
+        private static final JButton case6 = new JButton("Failover");
+        private static final JButton case7 = new JButton("Market data slowness");
+    }
+
+    static class EventInfo
+    {
+        static JTextField numberOfEventsTextField = new JTextField(TEXT_FIELD_SIZE);
+        static JTextField issueTypeTextField = new JTextField(TEXT_FIELD_SIZE);
+        static JTextField impactedSystemsTextField = new JTextField(TEXT_FIELD_SIZE);
+        static JTextField hostNameTextField = new JTextField(TEXT_FIELD_SIZE);
+        static JTextField impactedMarketsTextField = new JTextField(TEXT_FIELD_SIZE);
+        static JTextField impactedFlowsTextField = new JTextField(TEXT_FIELD_SIZE);
+        static JTextField impactedClientsTextField = new JTextField(TEXT_FIELD_SIZE);
+        static JTextField originTextField = new JTextField(TEXT_FIELD_SIZE);
+        static JTextField flowTypeTextField = new JTextField(TEXT_FIELD_SIZE);
+        static JTextField pnlTextField = new JTextField(TEXT_FIELD_SIZE);
+
+        static JLabel numberOfEventsLabel = new JLabel("Number of events: ");
+        static JLabel issueTypeLabel = new JLabel("Issue Type :");
+        static JLabel impactedSystemsLabel = new JLabel("Impacted Systems :");
+        static JLabel hostNameLabel = new JLabel("Host Name: ");
+        static JLabel impactedMarketsLabel = new JLabel("Impacted Markets :");
+        static JLabel impactedFlowsLabel = new JLabel("Impacted Flows: ");
+        static JLabel impactedClientsLabel = new JLabel("Impacted Clients: ");
+        static JLabel originLabel = new JLabel("Issue Origin: ");
+        static JLabel flowTypeLabel = new JLabel("Flow Type: ");
+        static JLabel pnlLabel = new JLabel("PNL: ");
+    }
+
+    static class JsonKeys
+    {
+        static String issueTypeKey = "issue type";
+        static String impactedSystemsKey = "impacted systems";
+        static String hostnameKey = "hostname";
+        static String impactedMarketsKey = "impacted markets";
+        static String impactedFlowsKey = "impacted flows";
+        static String impactedClientsKey = "impacted clients";
+        static String originKey = "origin";
+        static String flowTypeKey = "flow type";
+        static String pnlKey = "pnl";
+        static String timestampKey = "timestamp";
+    }
+
+    MyFrame()
+    {
+        setTitle("BNPP RHINOS SIMULATOR");
+        setSize(400, 600);
+        setLocation(new Point(300, 200));
+        setLayout(null);
+        setResizable(true);
+        caseIdToDefaultValue = new HashMap<>();
+        initializeDefaults();
+        initComponent();
+        initEvent();
+    }
+
+    private void initializeDefaults()
+    {
+        DefaultValue rejectionsDefault = new DefaultValue("500", "Reject", "OMS",
+                                                "productionHost", "NSE, BSE", "Cash",
+                                                    "VIP", "trading", "agency", "1000000");
+
+        caseIdToDefaultValue.put(Buttons.case1.getText(), rejectionsDefault);
+
+        DefaultValue cancellationsDefault = new DefaultValue("500", "Cancel", "OMS",
+                                                "productionHost", "NSE, BSE", "Cash",
+                                                    "VIP", "trading", "agency", "1000000");
+
+        caseIdToDefaultValue.put(Buttons.case2.getText(), cancellationsDefault);
+
+        DefaultValue executionsDefault = new DefaultValue("500", "Exec", "OMS",
+                                                "productionHost", "NSE, BSE", "Cash",
+                                                    "VIP", "trading", "agency", "1000000");
+        caseIdToDefaultValue.put(Buttons.case3.getText(), executionsDefault);
+
+        DefaultValue networkDownDefault = new DefaultValue("1", "NetworkDisconnection", "OMS",
+                                                "productionHost", "NSE, BSE", "Cash",
+                                                    "VIP", "trading", "agency", "1000000");
+        caseIdToDefaultValue.put(Buttons.case4.getText(), networkDownDefault);
+
+        DefaultValue incorrectPriceRangeDefault = new DefaultValue("1", "IncorrectPriceRange", "OMS",
+                                                    "productionHost", "NSE, BSE", "Cash",
+                                                        "VIP", "trading", "agency", "1000000");
+        caseIdToDefaultValue.put(Buttons.case5.getText(), incorrectPriceRangeDefault);
+
+        DefaultValue failoverDefault = new DefaultValue("1", "Failover", "OMS",
+                                        "productionHost", "NSE, BSE", "Cash",
+                                            "VIP", "trading", "agency", "1000000");
+        caseIdToDefaultValue.put(Buttons.case6.getText(), failoverDefault);
+
+        DefaultValue marketDataSlownessDefault = new DefaultValue("1", "MarketDataSlowness", "OMS",
+                                                    "productionHost", "NSE, BSE", "Cash",
+                                                        "VIP", "trading", "agency", "1000000");
+        caseIdToDefaultValue.put(Buttons.case7.getText(), marketDataSlownessDefault);
+    }
+
+	private void initComponent()
+    {
+		Buttons.case1.setBounds(20, 100, 200, 25);
+        Buttons.case2.setBounds(20, 130, 200, 25);
+        Buttons.case3.setBounds(20, 160, 200, 25);
+        Buttons.case4.setBounds(20, 190, 200, 25);
+        Buttons.case5.setBounds(20, 220, 200, 25);
+        Buttons.case6.setBounds(20, 250, 200, 25);
+        Buttons.case7.setBounds(20, 280, 200, 25);
 
 
 		serverAddressTextField.setBounds(150, 10, 100, 20);
@@ -197,13 +196,13 @@ class MyFrame extends JFrame
 
 		add(simulationsLabel);
 
-		add(repeatedRejections);
-		add(repeatedCancellations);
-		add(highVolume);
-		add(networkDown);
-		add(incorrectPriceRange);
-		add(failover);
-		add(marketDataDelay);
+		add(Buttons.case1);
+		add(Buttons.case2);
+		add(Buttons.case3);
+		add(Buttons.case4);
+		add(Buttons.case5);
+		add(Buttons.case6);
+		add(Buttons.case7);
 
 		add(serverAddressLabel);
 		add(serverPortLabel);
@@ -220,47 +219,19 @@ class MyFrame extends JFrame
 			}
 		});
 
-		repeatedRejections.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, repeatedRejections.getText());
-			}
-		});
+        Buttons.case1.addActionListener(e -> btnPressedActionHandler(e, Buttons.case1.getText()));
 
-		repeatedCancellations.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, repeatedCancellations.getText());
-			}
-		});
+        Buttons.case2.addActionListener(e -> btnPressedActionHandler(e, Buttons.case2.getText()));
 
-		highVolume.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, highVolume.getText());
-			}
-		});
+        Buttons.case3.addActionListener(e -> btnPressedActionHandler(e, Buttons.case3.getText()));
 
-		networkDown.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, networkDown.getText());
-			}
-		});
+        Buttons.case4.addActionListener(e -> btnPressedActionHandler(e, Buttons.case4.getText()));
 
-		incorrectPriceRange.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, incorrectPriceRange.getText());
-			}
-		});
+        Buttons.case5.addActionListener(e -> btnPressedActionHandler(e, Buttons.case5.getText()));
 
-		failover.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, failover.getText());
-			}
-		});
-		
-		marketDataDelay.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, marketDataDelay.getText());
-			}
-		});
+        Buttons.case6.addActionListener(e -> btnPressedActionHandler(e, Buttons.case6.getText()));
+
+        Buttons.case7.addActionListener(e -> btnPressedActionHandler(e, Buttons.case7.getText()));
 	}
 
 	private void extractServerConnectionDetails()
@@ -285,7 +256,7 @@ class MyFrame extends JFrame
 		}
 	}
 
-	private void showInfoInputDialog(ActionEvent evt, JSONObject incidentJsonObject, AtomicInteger eventCount, String caseID)
+	private void showInfoInputDialog(ActionEvent evt, JSONObject incidentJsonObject, AtomicInteger eventCount, DefaultValue defaultValue)
 	{
 	      JPanel myPanel = new JPanel();
 	      myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.Y_AXIS));
@@ -319,18 +290,17 @@ class MyFrame extends JFrame
 	      myPanel.add(EventInfo.pnlLabel);
 	      myPanel.add(EventInfo.pnlTextField);
 	      
-	      
-	      EventInfo.numberOfEventsTextField.setText(caseIDtoNoOfEvents.get(caseID));
-	      EventInfo.issueTypeTextField.setText(caseIDtoissueType.get(caseID));
-	      EventInfo.impactedSystemsTextField.setText(caseIDtoimpactedSystems.get(caseID));
-	      EventInfo.hostNameTextField.setText(caseIDtoHostname.get(caseID));
-	      EventInfo.impactedMarketsTextField.setText(caseIDtoImpactedMarkets.get(caseID));
-	      EventInfo.impactedFlowsTextField.setText(caseIDtoImpactedFlows.get(caseID));
-	      EventInfo.impactedClientsTextField.setText(caseIDtoImpactedClients.get(caseID));
-	      EventInfo.originTextField.setText(caseIDtoOriginText.get(caseID));
-	      EventInfo.flowTypeTextField.setText(caseIDtoFlowType.get(caseID));
-	      EventInfo.pnlTextField.setText(caseIDtoPnL.get(caseID));
-	      
+	      EventInfo.issueTypeTextField.setText(defaultValue._issueType);
+	      EventInfo.numberOfEventsTextField.setText(defaultValue._numberOfEvents);
+	      EventInfo.impactedSystemsTextField.setText(defaultValue._impactedSystems);
+	      EventInfo.hostNameTextField.setText(defaultValue._hostName);
+	      EventInfo.impactedMarketsTextField.setText(defaultValue._impactedMarkets);
+	      EventInfo.impactedFlowsTextField.setText(defaultValue._impactedFlows);
+	      EventInfo.impactedClientsTextField.setText(defaultValue._impactedClients);
+	      EventInfo.originTextField.setText(defaultValue._origin);
+	      EventInfo.flowTypeTextField.setText(defaultValue._flowType);
+	      EventInfo.pnlTextField.setText(defaultValue._pnl);
+
 	      int result = JOptionPane.showConfirmDialog(null, myPanel, 
 	               		"Please provide incident details", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, rhinoIcon);
 	      
@@ -348,20 +318,14 @@ class MyFrame extends JFrame
 		    	  incidentJsonObject.put( JsonKeys.originKey, EventInfo.originTextField.getText() );
 		    	  incidentJsonObject.put( JsonKeys.flowTypeKey, EventInfo.flowTypeTextField.getText() );
 		    	  incidentJsonObject.put( JsonKeys.pnlKey, EventInfo.pnlTextField.getText() );
-		    	  incidentJsonObject.put( JsonKeys.timestampKey, new Date().toString() );
+		    	  long endTimeInNano = System.nanoTime();
+		    	  incidentJsonObject.put( JsonKeys.timestampKey, (endTimeInNano-startTimeInNano) );
 	    	  }
 	    	  catch(Exception ex)
 	    	  {
 	    		  System.out.println( "Exception: " + ex.getMessage() );
 	    	  }
 	      }
-	}
-	
-	static private String getDefaultTextFromCaseID(String caseID)
-	{
-		Map<String, String> caseIDtoDefaultText = new HashMap<String, String>();
-		return caseID;
-		
 	}
 	
 	private void btnPressedActionHandler(ActionEvent evt, String caseID)
@@ -375,7 +339,9 @@ class MyFrame extends JFrame
 		
 		AtomicInteger eventCount = new AtomicInteger();
 		JSONObject incidentJsonObject = new JSONObject();
-		showInfoInputDialog(evt, incidentJsonObject, eventCount, caseID);
+		DefaultValue defaultValue = caseIdToDefaultValue.get(caseID);
+
+		showInfoInputDialog(evt, incidentJsonObject, eventCount, defaultValue);
 		eventsLogTextArea.append("\nExtracting event info . . .");
 		
 		if(serverConnection.isConnected())
