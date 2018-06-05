@@ -46,10 +46,9 @@ public class AIMsgProcessor implements Runnable {
 		Rhinos app = new Rhinos(true);
 		// AIMsgProcessor app = new AIMsgProcessor();
 		try {
-			// File file = new
-			// File("C:\\Users\\Hack-1\\bnpprhinos\\chatBot\\src\\main\\resources\\RepeatedCancels.json");
-			//File file = new File("C:\\Users\\Hack-1\\bnpprhinos\\chatBot\\src\\main\\resources\\MarketDataSlowness.json");
-			File file = new File("C:\\Users\\Hack-1\\bnpprhinos\\chatBot\\src\\main\\resources\\NetworkDown.json");
+			//File file = new File("C:\\Users\\Hack-1\\bnpprhinos\\chatBot\\src\\main\\resources\\RepeatedCancels.json");
+			File file = new File("C:\\Users\\Hack-1\\bnpprhinos\\chatBot\\src\\main\\resources\\MarketDataSlowness.json");
+			//File file = new File("C:\\Users\\Hack-1\\bnpprhinos\\chatBot\\src\\main\\resources\\NetworkDown.json");
 			JsonNode incidentNode = JsonLoader.fromFile(file);
 			messageQueue.put(incidentNode);
 
@@ -122,8 +121,13 @@ public class AIMsgProcessor implements Runnable {
 	void processIncident(JsonNode incidentNode) throws SymClientException {
 
 		System.out.println("Process issue " + incidentNode.get("issue type"));
+		String roomName;
 		String roomKey = RoomUtil.getRoomKey(incidentNode);
-		String roomName = roomKey + " " + LocalDateTime.now().format(formatter);
+		if (roomKey.startsWith("MarketDataSlowness"))
+			roomName = "MarketDataSlowness " + LocalDateTime.now().format(formatter);
+		else {
+			roomName = roomKey + " " + LocalDateTime.now().format(formatter);
+		}
 
 		// Check if room already exist
 		if (RoomUtil.getRooms().containsKey(roomKey)) {
