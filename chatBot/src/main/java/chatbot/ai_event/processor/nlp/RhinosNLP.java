@@ -155,21 +155,21 @@ public class RhinosNLP {
 	    		continue;
 	    	targetPattern.addPossibleNouns(Arrays.asList(temp.split("\\s*,\\s*")));
 	    	
-	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_ADJECTIVES).toLowerCase();
+	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_ADJECTIVES);
 	    	if (temp != null && !temp.isEmpty())
-	    		targetPattern.addPossibleAdjectives(Arrays.asList(temp.split("\\s*,\\s*")));
+	    		targetPattern.addPossibleAdjectives(Arrays.asList(temp.toLowerCase().split("\\s*,\\s*")));
 	    	
-	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_SYSTEMS).toLowerCase();
+	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_SYSTEMS);
 	    	if (temp != null && !temp.isEmpty())
-	    		targetPattern.addPossibleSystems(Arrays.asList(temp.split("\\s*,\\s*")));
+	    		targetPattern.addPossibleSystems(Arrays.asList(temp.toLowerCase().split("\\s*,\\s*")));
 	    	
 	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_QUESTION_TAG);
 	    	if (temp != null && !temp.isEmpty())
-	    		targetPattern.addPossibleQuestionTag(Arrays.asList(temp.split("\\s*,\\s*")));
+	    		targetPattern.addPossibleQuestionTag(Arrays.asList(temp.toLowerCase().split("\\s*,\\s*")));
 	    	
 	    	temp = patternProps.getProperty(pattern + PATTERN_KEY_SUFFIX_NO_QUESTION_TAG);
 	    	if (temp != null && !temp.isEmpty())
-	    		targetPattern.addPossibleNoQuestionTag(Arrays.asList(temp.split("\\s*,\\s*")));
+	    		targetPattern.addPossibleNoQuestionTag(Arrays.asList(temp.toLowerCase().split("\\s*,\\s*")));
 	    	
 	    	targetPatterns_.add(targetPattern);
 	    	
@@ -221,7 +221,10 @@ public class RhinosNLP {
 	            	questionTags.add(word);
 	            } else if (EPartOfSpeech.AdverbSuperlative.equals(EPartOfSpeech.parse(pos)) ||
 	            		EPartOfSpeech.AdverbComparative.equals(EPartOfSpeech.parse(pos)) ||
-	            		EPartOfSpeech.Adverb.equals(EPartOfSpeech.parse(pos))) {
+	            		EPartOfSpeech.Adverb.equals(EPartOfSpeech.parse(pos)) ||
+	            		EPartOfSpeech.Adjective.equals(EPartOfSpeech.parse(pos)) ||
+	            		EPartOfSpeech.AdjectiveComparative.equals(EPartOfSpeech.parse(pos)) ||
+	            		EPartOfSpeech.AdjectiveSuperlative.equals(EPartOfSpeech.parse(pos))) {
 	            	adjectives.add(word);
 	            }
 	        }
@@ -259,7 +262,7 @@ public class RhinosNLP {
 	    		
 	    		List<String> adjectiveMatched = new ArrayList<>();
 	    		for (String adjective : adjectives) {
-	    			if (targetPattern.matchQuestionTag(adjective)) {
+	    			if (targetPattern.matchAdjective(adjective)) {
 	    				adjectiveMatched.add(adjective);
 	    			}
 	    		}
