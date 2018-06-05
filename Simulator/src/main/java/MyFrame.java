@@ -13,6 +13,7 @@ class MyFrame extends JFrame {
     static final int TEXT_FIELD_SIZE = 30;
 
     private ImageIcon rhinoIcon = new ImageIcon("resources/rhino.png");
+    private ImageIcon mainScreenIcon = new ImageIcon(rhinoIcon.getImage().getScaledInstance(150,150, Image.SCALE_DEFAULT));
 
     private JTextField serverAddressTextField = new JTextField();
     private JTextField serverPortTextField = new JTextField();
@@ -199,7 +200,12 @@ class MyFrame extends JFrame {
 
 		add(eventsLogTextArea);
 
-		add(simulationsLabel);
+		JLabel label = new JLabel(mainScreenIcon);
+		label.setBounds(205, 100, 200, 200);
+
+        add(label);
+
+        add(simulationsLabel);
 
 		add(Buttons.case1);
 		add(Buttons.case2);
