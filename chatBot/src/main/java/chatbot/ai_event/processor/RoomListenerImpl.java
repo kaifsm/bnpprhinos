@@ -40,9 +40,9 @@ public class RoomListenerImpl implements RoomListener {
 		}
 
 		try {
-			if (inboundMessage.getMessageText().startsWith("@bot")) {
+			//if (inboundMessage.getMessageText().startsWith("@bot")) {
 				nlpEngine.parse(inboundMessage.getStream().getStreamId(), inboundMessage.getMessageText());
-			}
+			//}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

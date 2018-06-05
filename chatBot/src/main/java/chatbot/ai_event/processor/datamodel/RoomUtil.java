@@ -40,9 +40,14 @@ public class RoomUtil {
 		while (itr.hasNext()) {
 			Entry<String, RoomWrapper> roomEntry = itr.next();
 			RoomWrapper room = roomEntry.getValue();
-			//if (room.getRoomInfo().getRoomSystemInfo().getId().equals(streamId)) {
-			//	itr.remove();
-			//}
+			if (room.getRoomInfo().getRoomSystemInfo().getId().equals(streamId) && room.getTicket() != null) {
+				//Close incident ticket
+				OutboundMessage messageOut = new OutboundMessage();
+				String ticketNo = "ITM" + String.format("%06d", serviceNowTicketCounter);
+				messageOut.setMessage("Updating and resolving incident ticket " + ticketNo);
+				botClient.getMessagesClient().sendMessage(streamId, messageOut);
+				break;
+			}
 		}
 		
 		//Deactivate in Symphony
@@ -90,7 +95,16 @@ public class RoomUtil {
 	public static void createServiceNowTicket(String streamId) throws SymClientException {
 		// botClient.getBotClient().getStreamsClient().getRoomInfo(streamId);
 		OutboundMessage messageOut = new OutboundMessage();
-		messageOut.setMessage("Service now ticket created " + getserviceNowTicketId());
+		String ticket = getserviceNowTicketId();
+		messageOut.setMessage("Service now ticket created " + ticket);
 		botClient.getMessagesClient().sendMessage(streamId, messageOut);
+		
+		//Update ticket in room
+		for (RoomWrapper room : rooms.values())
+		{
+		if (room.getRoomInfo().getRoomSystemInfo().getId().equals(streamId)) {
+			room.setTicket(ticket);
+		}
+		}
 	}
 }

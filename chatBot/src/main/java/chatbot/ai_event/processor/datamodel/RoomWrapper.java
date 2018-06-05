@@ -33,5 +33,12 @@ public class RoomWrapper {
 	RoomInfo roomInfo;
 	JsonNode incidentNode;
 	String roomKey;
+	String ticket = null;
+	public String getTicket() {
+		return ticket;
+	}
+	public void setTicket(String ticket) {
+		this.ticket = ticket;
+	}
 
 }

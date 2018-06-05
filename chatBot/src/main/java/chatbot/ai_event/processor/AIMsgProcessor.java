@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,13 +46,15 @@ public class AIMsgProcessor implements Runnable {
 		Rhinos app = new Rhinos(true);
 		// AIMsgProcessor app = new AIMsgProcessor();
 		try {
-			 //File file = new File("C:\\Users\\Hack-1\\bnpprhinos\\chatBot\\src\\main\\resources\\RepeatedCancels.json");
-			File file = new File("C:\\Users\\Hack-1\\bnpprhinos\\chatBot\\src\\main\\resources\\MarketDataSlowness.json");
+			// File file = new
+			// File("C:\\Users\\Hack-1\\bnpprhinos\\chatBot\\src\\main\\resources\\RepeatedCancels.json");
+			File file = new File(
+					"C:\\Users\\Hack-1\\bnpprhinos\\chatBot\\src\\main\\resources\\MarketDataSlowness.json");
 			JsonNode incidentNode = JsonLoader.fromFile(file);
 			messageQueue.put(incidentNode);
 
 			Thread.sleep(10000);
-			messageQueue.put(incidentNode);
+			//messageQueue.put(incidentNode);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -133,7 +136,8 @@ public class AIMsgProcessor implements Runnable {
 		}
 
 		// Get user list
-		List<UserInfo> impactedUsers = User.getImpactedUsers(incidentNode);
+		List<String> impactedProfiles = new ArrayList<String>();
+		List<UserInfo> impactedUsers = User.getImpactedUsers(incidentNode, impactedProfiles);
 
 		if (impactedUsers.isEmpty()) {
 			System.out.println("No user to notify -> drop incident");
@@ -151,12 +155,12 @@ public class AIMsgProcessor implements Runnable {
 			roomInfo = RoomUtil.getBotClient().getStreamsClient().createRoom(room);
 		} catch (IllegalStateException e) {
 			System.out.println("Failed to create room ! already exist ?");
-			//roomInfo = createRoom(room);
+			// roomInfo = createRoom(room);
 		}
 		if (roomInfo == null) {
 			System.out.println("Failed to create room, already exist ?");
 			return;
-			//roomInfo = createRoom(room);
+			// roomInfo = createRoom(room);
 		}
 		RoomUtil.getRooms().put(roomKey, new RoomWrapper(roomInfo, incidentNode, roomKey));
 		// Add impacted users
@@ -168,10 +172,36 @@ public class AIMsgProcessor implements Runnable {
 
 		// Send welcome message
 		OutboundMessage message = new OutboundMessage();
-		message.setMessage(printIncidentDescription(incidentNode));
+		StringBuilder messageBuffer = new StringBuilder();
+		messageBuffer.append("<table>");
+		messageBuffer.append("<tr><td>Issue Type</td><td>").append(incidentNode.get("issue type").asText()).append("</td></tr>");
+		if (incidentNode.get("timestamp")!= null)
+			messageBuffer.append("<tr><td>Time of occurence</td><td>").append(incidentNode.get("timestamp").asText()).append("</td></tr>");
+		if (incidentNode.get("impacted systems")!= null)
+			messageBuffer.append("<tr><td>Concerned Systems</td><td>").append(incidentNode.get("impacted systems").asText()).append("</td></tr>");
+		if (incidentNode.get("impacted flows")!= null)
+			messageBuffer.append("<tr><td>Impacted Flow</td><td>").append(incidentNode.get("impacted flows").asText()).append("</td></tr>");
+		if (incidentNode.get("impacted clients")!= null)
+			messageBuffer.append("<tr><td>Impacted Clients</td><td>").append(incidentNode.get("impacted clients").asText()).append("</td></tr>");
+		if (incidentNode.get("impacted markets")!= null)
+			messageBuffer.append("<tr><td>Impacted Markets</td><td>").append(incidentNode.get("impacted markets").asText()).append("</td></tr>");
+		if (incidentNode.get("pnl")!= null)
+		messageBuffer.append("<tr><td>Estimated PnL</td><td> EUR ").append(incidentNode.get("pnl").asText()).append("</td></tr>");
+		messageBuffer.append("</table><br />");
+		message.setMessage(messageBuffer.toString());
+		//message.
+		//message.setMessage(printIncidentDescription(incidentNode));
 		// message.setMessage("First occurence at " + incidentNode.get("timestamp"));
 		RoomUtil.getBotClient().getMessagesClient().sendMessage(roomInfo.getRoomSystemInfo().getId(), message);
 
+		// Send list of involved teams
+		message = new OutboundMessage();
+		StringBuffer msgBuf = new StringBuffer().append("Adding following teams in this chat room:\n");
+		for (String profileName : impactedProfiles) {
+			msgBuf.append(profileName).append(", ");
+		}
+		message.setMessage(msgBuf.toString());
+		RoomUtil.getBotClient().getMessagesClient().sendMessage(roomInfo.getRoomSystemInfo().getId(), message);
 	}
 
 	static String printIncidentDescription(JsonNode incidentNode) {
