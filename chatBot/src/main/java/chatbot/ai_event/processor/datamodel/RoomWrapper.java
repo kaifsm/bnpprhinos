@@ -34,7 +34,7 @@ public class RoomWrapper {
 	JsonNode incidentNode;
 	String roomKey;
 	String ticket = null;
-	String status = "new";
+	String status = null;
 	
 	
 	public String getStatus() {

@@ -6,7 +6,7 @@ public class AskForIncidentStatusTask extends Task {
 
 	@Override
 	public void perform() throws Exception {
-		RoomUtil.closeRoom(streamId_);
+		RoomUtil.publishStatus(streamId_);
 	}
 
 }

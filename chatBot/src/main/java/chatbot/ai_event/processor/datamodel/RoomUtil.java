@@ -100,11 +100,41 @@ public class RoomUtil {
 		botClient.getMessagesClient().sendMessage(streamId, messageOut);
 		
 		//Update ticket in room
-		for (RoomWrapper room : rooms.values())
-		{
-		if (room.getRoomInfo().getRoomSystemInfo().getId().equals(streamId)) {
-			room.setTicket(ticket);
+		for (RoomWrapper room : rooms.values()) {
+			if (room.getRoomInfo().getRoomSystemInfo().getId().equals(streamId)) {
+				room.setTicket(ticket);
+			}
 		}
+	}
+	
+	static RoomWrapper getRoom(String id)
+	{
+		for (RoomWrapper room : rooms.values()) {
+			if (room.getRoomInfo().getRoomSystemInfo().getId().equals(id)) {
+				return room;
+			}
+		}
+		return null;
+		
+	}
+	static public void updateStatus(String streamId_, String rawMessage_)
+	{
+		if (getRoom(streamId_)!= null) 
+		{
+				getRoom(streamId_).setStatus(rawMessage_);
+		}
+	}
+	
+	static public void publishStatus(String streamId_) throws SymClientException
+	{
+		if (getRoom(streamId_)!= null) 
+		{
+		OutboundMessage messageOut = new OutboundMessage();
+		if (getRoom(streamId_).getStatus() == null)
+			messageOut.setMessage("Good question....I don't know...hm...Anyone?");
+		else
+			messageOut.setMessage(getRoom(streamId_).getStatus());
+		botClient.getMessagesClient().sendMessage(streamId_, messageOut);
 		}
 	}
 }

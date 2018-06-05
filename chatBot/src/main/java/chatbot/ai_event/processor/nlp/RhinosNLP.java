@@ -89,11 +89,14 @@ public class RhinosNLP {
 		public boolean hasQuestionTags() {
 			return !(possibleQuestionTags_.isEmpty());
 		}
+		public boolean matchQuestionTag(String questionTag) {
+			return possibleQuestionTags_.contains(questionTag.toLowerCase());
+		}
 		public boolean hasNoQuestionTags() {
 			return !(possibleNoQuestionTags_.isEmpty());
 		}
-		public boolean matchQuestionTag(String questionTag) {
-			return possibleQuestionTags_.contains(questionTag.toLowerCase());
+		public boolean matchNoQuestionTag(String noQuestionTag) {
+			return possibleNoQuestionTags_.contains(noQuestionTag.toLowerCase());
 		}
 		
 		public Task createTaskInstance() throws ClassNotFoundException, NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -240,7 +243,14 @@ public class RhinosNLP {
 	    		if (targetPattern.hasQuestionTags() && questionTagMatched.isEmpty())
 	    			continue;
 	    		
-	    		if (targetPattern.hasNoQuestionTags() && !questionTagMatched.isEmpty())
+	    		List<String> noQuestionTagMatched = new ArrayList<>();
+	    		for (String questionTag : questionTags) {
+	    			if (targetPattern.matchNoQuestionTag(questionTag)) {
+	    				noQuestionTagMatched.add(questionTag);
+	    			}
+	    		}
+	    		
+	    		if (targetPattern.hasNoQuestionTags() && !noQuestionTagMatched.isEmpty())
 	    			continue;
 	    		
 	    		List<String> systemMatched = new ArrayList<>();
@@ -256,6 +266,7 @@ public class RhinosNLP {
 	    		// create task
 	    		Task task = targetPattern.createTaskInstance();
 	    		task.addStreamId(streamId);
+	    		task.setRawMessage(text);
 	    		task.addSystems(systemMatched);
 	    		task.perform();
 
