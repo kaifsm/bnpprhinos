@@ -18,6 +18,8 @@ class MyFrame extends JFrame {
     private JTextField serverPortTextField = new JTextField();
 
     private JLabel serverAddressLabel = new JLabel("Server address :");
+    private static final String defaultHostName = "localhost";
+    private static final String defaultPortNumber = "23456";
     private JLabel serverPortLabel = new JLabel("Server Port :");
     private JLabel simulationsLabel = new JLabel("Simulations");
 
@@ -137,7 +139,7 @@ class MyFrame extends JFrame {
 
         caseIdToDefaultValue.put(Buttons.case1.getText(), rejectionsDefault);
 
-        DefaultValue cancellationsDefault = new DefaultValue("500", "RepeatedCancels", "AlgoEngine",
+        DefaultValue cancellationsDefault = new DefaultValue("500", "Cancel", "AlgoEngine",
                                                 "bnpphkserver02", "HKEX", "Cash",
                                                     "BNPPInternal", "ETRADING", "ALL", "3830000");
 
@@ -181,7 +183,9 @@ class MyFrame extends JFrame {
 
 
 		serverAddressTextField.setBounds(150, 10, 100, 20);
+		serverAddressTextField.setText(defaultHostName);
 		serverPortTextField.setBounds(150, 35, 100, 20);
+		serverPortTextField.setText(defaultPortNumber);
 
 		serverAddressLabel.setBounds(20, 10, 150, 20);
 		serverAddressLabel.setFont(new Font(serverAddressLabel.getFont().getName(), Font.BOLD, 14));
