@@ -19,13 +19,13 @@ class MyFrame extends JFrame
 
 	private ImageIcon rhinoIcon = new ImageIcon("resources/rhino.png");
 	
-	private static final JButton case1 = new JButton("Repeated rejections");
-	private static final JButton case2 = new JButton("Repeated cancellations");
-	private static final JButton case3 = new JButton("High volume");
-	private static final JButton case4 = new JButton("Network down");
-	private static final JButton case5 = new JButton("Incorrect price range");
-	private static final JButton case6 = new JButton("Failover");
-	private static final JButton case7 = new JButton("Market data delay");
+	private static final JButton repeatedRejections = new JButton("Repeated rejections");
+	private static final JButton repeatedCancellations = new JButton("Repeated cancellations");
+	private static final JButton highVolume = new JButton("High volume");
+	private static final JButton networkDown = new JButton("Network down");
+	private static final JButton incorrectPriceRange = new JButton("Incorrect price range");
+	private static final JButton failover = new JButton("Failover");
+	private static final JButton marketDataDelay = new JButton("Market data delay");
 
 	private JTextField serverAddressTextField = new JTextField();
 	private JTextField serverPortTextField    = new JTextField();
@@ -82,27 +82,77 @@ class MyFrame extends JFrame
 		static String timestampKey			= new String("timestamp");
 	}
 	
-	private static final Map<String, String> caseIDtoDefaultText; 
-	private static final Map<String, String> caseIDtoDefaultCount; //easier to use String for the count, because it will be put into a text field
+	private static final Map<String, String> caseIDtoissueType; 
+	private static final Map<String, String> caseIDtoNoOfEvents; //easier to use String for the count, because it will be put into a text field
+	private static final Map<String, String> caseIDtoimpactedSystems;
+	private static final Map<String, String> caseIDtoHostname;
+	private static final Map<String, String> caseIDtoImpactedMarkets;
+	private static final Map<String, String> caseIDtoImpactedFlows;
+	private static final Map<String, String> caseIDtoImpactedClients;
+	private static final Map<String, String> caseIDtoOriginText;
+	private static final Map<String, String> caseIDtoFlowType;
+	private static final Map<String, String> caseIDtoPnL;
 	
 	static {
-		caseIDtoDefaultText = new HashMap<String, String>();
-		caseIDtoDefaultText.put(case1.getText(), "Reject"); //for AI to generate RepeatedRejects message
-		caseIDtoDefaultText.put(case2.getText(), "Cancel"); //for AI to generate RepeatedCancels message
-		caseIDtoDefaultText.put(case3.getText(), "Exec");   //for AI to generate HighVolume message
-		caseIDtoDefaultText.put(case4.getText(), "NetworkDisconnection");
-		caseIDtoDefaultText.put(case5.getText(), "IncorrectPriceRange");
-		caseIDtoDefaultText.put(case6.getText(), "Failover");
-		caseIDtoDefaultText.put(case7.getText(), "MarketDataSlowness");
+		caseIDtoissueType = new HashMap<String, String>();
+		caseIDtoissueType.put(repeatedRejections.getText(), "Reject"); //for AI to generate RepeatedRejects message
+		caseIDtoissueType.put(repeatedCancellations.getText(), "Cancel"); //for AI to generate RepeatedCancels message
+		caseIDtoissueType.put(highVolume.getText(), "Exec");   //for AI to generate HighVolume message
+		caseIDtoissueType.put(networkDown.getText(), "NetworkDown");
+		caseIDtoissueType.put(incorrectPriceRange.getText(), "IncorrectPriceRange");
+		caseIDtoissueType.put(failover.getText(), "Failover");
+		caseIDtoissueType.put(marketDataDelay.getText(), "MarketDataSlowness");
 		
-		caseIDtoDefaultCount = new HashMap<String, String>();
-		caseIDtoDefaultCount.put(case2.getText(), "500");
-		caseIDtoDefaultCount.put(case3.getText(), "500");
-		caseIDtoDefaultCount.put(case1.getText(), "500");
-		caseIDtoDefaultCount.put(case4.getText(), "1");
-		caseIDtoDefaultCount.put(case5.getText(), "1");
-		caseIDtoDefaultCount.put(case6.getText(), "1");
-		caseIDtoDefaultCount.put(case7.getText(), "1");
+		caseIDtoNoOfEvents = new HashMap<String, String>();
+		caseIDtoNoOfEvents.put(repeatedRejections.getText(), "500");
+		caseIDtoNoOfEvents.put(repeatedCancellations.getText(), "500");
+		caseIDtoNoOfEvents.put(highVolume.getText(), "500");
+		caseIDtoNoOfEvents.put(networkDown.getText(), "1");
+		caseIDtoNoOfEvents.put(incorrectPriceRange.getText(), "1");
+		caseIDtoNoOfEvents.put(failover.getText(), "1");
+		caseIDtoNoOfEvents.put(marketDataDelay.getText(), "1");
+		
+		caseIDtoimpactedSystems = new HashMap<String, String>();
+		caseIDtoimpactedSystems.put(repeatedCancellations.getText(), "AlgoEngine");
+		caseIDtoimpactedSystems.put(networkDown.getText(), "FIXGateway");
+		caseIDtoimpactedSystems.put(marketDataDelay.getText(), "MarketAccess");
+
+		caseIDtoHostname = new HashMap<String, String>();
+		caseIDtoHostname.put(repeatedCancellations.getText(), "bnpphkserver02");
+		caseIDtoHostname.put(networkDown.getText(), "bnpphkserver01");
+		caseIDtoHostname.put(marketDataDelay.getText(), "bnpphkserver03");
+		
+		caseIDtoImpactedClients = new HashMap<String, String>();
+		caseIDtoImpactedClients.put(repeatedCancellations.getText(), "BNPPInternal");
+		caseIDtoImpactedClients.put(networkDown.getText(), "BNPPInternal");
+		caseIDtoImpactedClients.put(marketDataDelay.getText(), "BNPPInternal");
+		
+		caseIDtoImpactedMarkets = new HashMap<String, String>();
+		caseIDtoImpactedMarkets.put(repeatedCancellations.getText(), "HKEX");
+		caseIDtoImpactedMarkets.put(marketDataDelay.getText(), "HKEX");
+		
+		caseIDtoPnL = new HashMap<String, String>();
+		caseIDtoPnL.put(repeatedCancellations.getText(), "3830000");
+		caseIDtoPnL.put(networkDown.getText(), "850000");
+		caseIDtoPnL.put(marketDataDelay.getText(), "1750000");
+		
+		caseIDtoImpactedFlows = new HashMap<String, String>(); 
+		caseIDtoImpactedFlows.put(networkDown.getText(), "Cash");
+		caseIDtoImpactedFlows.put(marketDataDelay.getText(), "Cash");
+		
+		caseIDtoOriginText = new HashMap<String, String>(); 
+		
+		caseIDtoFlowType = new HashMap<String, String>(); 
+		
+//	      caseIDtoimpactedSystems.get(caseID));
+//	      EventInfo.hostNameTextField.setText(caseIDtoHostname.get(caseID));
+//	      EventInfo.impactedMarketsTextField.setText(caseIDtoImpactedMarkets.get(caseID));
+//	      EventInfo.impactedFlowsTextField.setText(caseIDtoImpactedFlows.get(caseID));
+//	      EventInfo.impactedClientsTextField.setText(caseIDtoImpactedClients.get(caseID));
+//	      EventInfo.originTextField.setText(caseIDtoOriginText.get(caseID));
+//	      EventInfo.flowTypeTextField.setText(caseIDtoFlowType.get(caseID));
+//	      EventInfo.pnlTextField.setText(caseIDtoPnL.get(caseID));
+		
 	};
 
 
@@ -121,13 +171,13 @@ class MyFrame extends JFrame
 	}
 
 	private void initComponent() {
-		case1.setBounds(20, 100, 200, 25);
-		case2.setBounds(20, 130, 200, 25);
-		case3.setBounds(20, 160, 200, 25);
-		case4.setBounds(20, 190, 200, 25);
-		case5.setBounds(20, 220, 200, 25);
-		case6.setBounds(20, 250, 200, 25);
-		case7.setBounds(20, 280, 200, 25);
+		repeatedRejections.setBounds(20, 100, 200, 25);
+		repeatedCancellations.setBounds(20, 130, 200, 25);
+		highVolume.setBounds(20, 160, 200, 25);
+		networkDown.setBounds(20, 190, 200, 25);
+		incorrectPriceRange.setBounds(20, 220, 200, 25);
+		failover.setBounds(20, 250, 200, 25);
+		marketDataDelay.setBounds(20, 280, 200, 25);
 
 
 		serverAddressTextField.setBounds(150, 10, 100, 20);
@@ -147,13 +197,13 @@ class MyFrame extends JFrame
 
 		add(simulationsLabel);
 
-		add(case1);
-		add(case2);
-		add(case3);
-		add(case4);
-		add(case5);
-		add(case6);
-		add(case7);
+		add(repeatedRejections);
+		add(repeatedCancellations);
+		add(highVolume);
+		add(networkDown);
+		add(incorrectPriceRange);
+		add(failover);
+		add(marketDataDelay);
 
 		add(serverAddressLabel);
 		add(serverPortLabel);
@@ -170,45 +220,45 @@ class MyFrame extends JFrame
 			}
 		});
 
-		case1.addActionListener(new ActionListener() {
+		repeatedRejections.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, case1.getText());
+				btnPressedActionHandler(e, repeatedRejections.getText());
 			}
 		});
 
-		case2.addActionListener(new ActionListener() {
+		repeatedCancellations.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, case2.getText());
+				btnPressedActionHandler(e, repeatedCancellations.getText());
 			}
 		});
 
-		case3.addActionListener(new ActionListener() {
+		highVolume.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, case3.getText());
+				btnPressedActionHandler(e, highVolume.getText());
 			}
 		});
 
-		case4.addActionListener(new ActionListener() {
+		networkDown.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, case4.getText());
+				btnPressedActionHandler(e, networkDown.getText());
 			}
 		});
 
-		case5.addActionListener(new ActionListener() {
+		incorrectPriceRange.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, case5.getText());
+				btnPressedActionHandler(e, incorrectPriceRange.getText());
 			}
 		});
 
-		case6.addActionListener(new ActionListener() {
+		failover.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, case6.getText());
+				btnPressedActionHandler(e, failover.getText());
 			}
 		});
 		
-		case7.addActionListener(new ActionListener() {
+		marketDataDelay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				btnPressedActionHandler(e, case7.getText());
+				btnPressedActionHandler(e, marketDataDelay.getText());
 			}
 		});
 	}
@@ -235,7 +285,7 @@ class MyFrame extends JFrame
 		}
 	}
 
-	private void showInfoInputDialog(ActionEvent evt, JSONObject incidentJsonObject, AtomicInteger eventCount, String defaultIssueType, String defaultNoofEvents)
+	private void showInfoInputDialog(ActionEvent evt, JSONObject incidentJsonObject, AtomicInteger eventCount, String caseID)
 	{
 	      JPanel myPanel = new JPanel();
 	      myPanel.setLayout(new BoxLayout(myPanel, BoxLayout.Y_AXIS));
@@ -269,8 +319,18 @@ class MyFrame extends JFrame
 	      myPanel.add(EventInfo.pnlLabel);
 	      myPanel.add(EventInfo.pnlTextField);
 	      
-	      EventInfo.issueTypeTextField.setText(defaultIssueType);
-	      EventInfo.numberOfEventsTextField.setText(defaultNoofEvents);
+	      
+	      EventInfo.numberOfEventsTextField.setText(caseIDtoNoOfEvents.get(caseID));
+	      EventInfo.issueTypeTextField.setText(caseIDtoissueType.get(caseID));
+	      EventInfo.impactedSystemsTextField.setText(caseIDtoimpactedSystems.get(caseID));
+	      EventInfo.hostNameTextField.setText(caseIDtoHostname.get(caseID));
+	      EventInfo.impactedMarketsTextField.setText(caseIDtoImpactedMarkets.get(caseID));
+	      EventInfo.impactedFlowsTextField.setText(caseIDtoImpactedFlows.get(caseID));
+	      EventInfo.impactedClientsTextField.setText(caseIDtoImpactedClients.get(caseID));
+	      EventInfo.originTextField.setText(caseIDtoOriginText.get(caseID));
+	      EventInfo.flowTypeTextField.setText(caseIDtoFlowType.get(caseID));
+	      EventInfo.pnlTextField.setText(caseIDtoPnL.get(caseID));
+	      
 	      int result = JOptionPane.showConfirmDialog(null, myPanel, 
 	               		"Please provide incident details", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, rhinoIcon);
 	      
@@ -315,7 +375,7 @@ class MyFrame extends JFrame
 		
 		AtomicInteger eventCount = new AtomicInteger();
 		JSONObject incidentJsonObject = new JSONObject();
-		showInfoInputDialog(evt, incidentJsonObject, eventCount, caseIDtoDefaultText.get(caseID),caseIDtoDefaultCount.get(caseID));
+		showInfoInputDialog(evt, incidentJsonObject, eventCount, caseID);
 		eventsLogTextArea.append("\nExtracting event info . . .");
 		
 		if(serverConnection.isConnected())

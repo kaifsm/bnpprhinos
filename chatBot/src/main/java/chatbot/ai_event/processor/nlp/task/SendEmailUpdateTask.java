@@ -11,7 +11,7 @@ public class SendEmailUpdateTask extends Task {
 		
 		Thread.sleep(2000);
 		
-		System.out.println("Email sent out now!");
-		RoomUtil.sendMessage(streamId_, "Email sent out now!");
+		System.out.println("Email sent out to APS team for preview now!");
+		RoomUtil.sendMessage(streamId_, "Email sent out to APS team for preview now!");
 	}
 }
