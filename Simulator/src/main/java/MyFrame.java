@@ -136,9 +136,9 @@ class MyFrame extends JFrame {
 
         caseIdToDefaultValue.put(Buttons.case1.getText(), rejectionsDefault);
 
-        DefaultValue cancellationsDefault = new DefaultValue("500", "Cancel", "OMS",
-                                                "productionHost", "NSE, BSE", "Cash",
-                                                    "VIP", "trading", "agency", "1000000");
+        DefaultValue cancellationsDefault = new DefaultValue("500", "RepeatedCancels", "AlgoEngine",
+                                                "bnpphkserver02", "HKEX", "Cash",
+                                                    "BNPPInternal", "ETRADING", "ALL", "3830000");
 
         caseIdToDefaultValue.put(Buttons.case2.getText(), cancellationsDefault);
 
@@ -147,9 +147,9 @@ class MyFrame extends JFrame {
                                                     "VIP", "trading", "agency", "1000000");
         caseIdToDefaultValue.put(Buttons.case3.getText(), executionsDefault);
 
-        DefaultValue networkDownDefault = new DefaultValue("1", "NetworkDisconnection", "OMS",
-                                                "productionHost", "NSE, BSE", "Cash",
-                                                    "VIP", "trading", "agency", "1000000");
+        DefaultValue networkDownDefault = new DefaultValue("1", "NetworkDown", "FIXGateway",
+                                                "bnpphkserver01", "HKEX,SGX", "Cash",
+                                                    "BusinessWarrior", "ETRADING", "ALL", "850000");
         caseIdToDefaultValue.put(Buttons.case4.getText(), networkDownDefault);
 
         DefaultValue incorrectPriceRangeDefault = new DefaultValue("1", "IncorrectPriceRange", "OMS",
@@ -162,9 +162,9 @@ class MyFrame extends JFrame {
                                             "VIP", "trading", "agency", "1000000");
         caseIdToDefaultValue.put(Buttons.case6.getText(), failoverDefault);
 
-        DefaultValue marketDataSlownessDefault = new DefaultValue("1", "MarketDataSlowness", "OMS",
-                                                    "productionHost", "NSE, BSE", "Cash",
-                                                        "VIP", "trading", "agency", "1000000");
+        DefaultValue marketDataSlownessDefault = new DefaultValue("1", "MarketDataSlowness", "MarketAccess,AlgoEngine",
+                                                    "bnpphkserver03", "HKEX", "Cash",
+                                                        "BNPPInternal", "ETrading", "Agency", "1750000");
         caseIdToDefaultValue.put(Buttons.case7.getText(), marketDataSlownessDefault);
     }
 
