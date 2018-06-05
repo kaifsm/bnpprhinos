@@ -134,7 +134,7 @@ public class AIMsgProcessor implements Runnable {
 			System.out.println("Update existing room " + roomKey);
 			RoomInfo roomInfo = RoomUtil.getRooms().get(roomKey).getRoomInfo();
 			OutboundMessage message = new OutboundMessage();
-			message.setMessage("New occurence at " + incidentNode.get("timestamp"));
+			message.setMessage("Another occurence at " + incidentNode.get("timestamp"));
 			RoomUtil.getBotClient().getMessagesClient().sendMessage(roomInfo.getRoomSystemInfo().getId(), message);
 			return;
 		}
