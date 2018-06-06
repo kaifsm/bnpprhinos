@@ -1,8 +1,8 @@
 {"issue type":"MarketDataSlowness",
 "impacted flows":["Cash"],
-"hostname":"bnpphkserver03",
+"hostname":"abcphkserver03",
 "impacted systems":["MarketAccess","AlgoEngine"],
-"impacted clients":["BNPPInternal"],
+"impacted clients":["abcPInternal"],
 "impacted markets":["HKEX"],
 "pnl":1750000,
 "timestamp":"Sun Jun 03 23:04:19 HKT 2018"}

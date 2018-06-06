@@ -97,7 +97,7 @@ public class BotExample {
     public BotExample() {
     	
     	
-        URL url = getClass().getClassLoader().getResource("RhinosSymphonyConfig.json");
+        URL url = getClass().getClassLoader().getResource("kathBotConfig.json");
         SymConfigLoader configLoader = new SymConfigLoader();
         SymConfig config = configLoader.loadFromFile(url.getFile());
         SymBotAuth botAuth = new SymBotAuth(config);
@@ -109,7 +109,7 @@ public class BotExample {
         DatafeedEventsService datafeedEventsService = botClient.getDatafeedEventsService();
         
         try {
-        	UserInfo botUserInfo = botClient.getUsersClient().getUserFromEmail("bot.user4@example.com", true);
+        	UserInfo botUserInfo = botClient.getUsersClient().getUserFromEmail("bot.user7@example.com", true);
         	
         	RoomListener roomListener = new TestRoomListener(botClient, botUserInfo);
             datafeedEventsService.addRoomListener(roomListener);
@@ -133,9 +133,9 @@ public class BotExample {
         OutboundMessage outMessage = new OutboundMessage();
         outMessage.setMessage("good afternoon from 2018/06/03 " + sdf.format(Calendar.getInstance().getTime()));
         
-//        UserInfo userInfoQC = botClient.getUsersClient().getUserFromEmail("quentin.courtois@asia.bnpparibas.com", true);
-//        UserInfo userInfoKS = botClient.getUsersClient().getUserFromEmail("katherine.sung@asia.bnpparibas.com", true);
-//        UserInfo userInfoPL = botClient.getUsersClient().getUserFromEmail("paulw.lee@ext.asia.bnpparibas.com", true);
+//        UserInfo userInfoQC = botClient.getUsersClient().getUserFromEmail("misterq@example.com", true);
+//        UserInfo userInfoKS = botClient.getUsersClient().getUserFromEmail("hedgehog@example", true);
+//        UserInfo userInfoPL = botClient.getUsersClient().getUserFromEmail("noname@example.com", true);
 //        
 //        botClient.getStreamsClient().addMemberToRoom(roomStreamId,userInfoQC.getId());
 //        botClient.getStreamsClient().addMemberToRoom(roomStreamId,userInfoPL.getId());
@@ -151,9 +151,9 @@ public class BotExample {
     private void createRoom(SymBotClient botClient){
         try {
 
-            UserInfo userInfoQC = botClient.getUsersClient().getUserFromEmail("quentin.courtois@asia.bnpparibas.com", true);
-            UserInfo userInfoKS = botClient.getUsersClient().getUserFromEmail("katherine.sung@asia.bnpparibas.com", true);
-            UserInfo userInfoPL = botClient.getUsersClient().getUserFromEmail("paulw.lee@ext.asia.bnpparibas.com", true);
+            UserInfo userInfoQC = botClient.getUsersClient().getUserFromEmail("misterQ@example.com", true);
+            UserInfo userInfoKS = botClient.getUsersClient().getUserFromEmail("hedgehog@example.com", true);
+            UserInfo userInfoPL = botClient.getUsersClient().getUserFromEmail("noname@ext.example.com", true);
             //get user IM and send message
             String IMStreamIdQC = botClient.getStreamsClient().getUserIMStreamId(userInfoQC.getId());
             //String IMStreamIdKS = botClient.getStreamsClient().getUserIMStreamId(userInfoKS.getId());

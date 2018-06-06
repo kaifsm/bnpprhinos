@@ -85,7 +85,7 @@
 	"Users": [
 		{
 			"Name": "Kaif",
-			"Email": "kaif.mavani@asia.bnpparibas.com",
+			"Email": "kaif@example.com",
 			"Profiles": [
 				"Infrastructure"
 			],
@@ -101,23 +101,23 @@
 		},
 		{
 			"Name": "Paul",
-			"Email": "paulw.lee@ext.asia.bnpparibas.com",
+			"Email": "noname@example.com",
 			"Profiles": [
 				"APS Agency Cash"
 			],
 			"Notifications": "on"
 		},
 		{
-			"Name": "Kath",
-			"Email": "katherine.sung@asia.bnpparibas.com",
+			"Name": "hedgehog",
+			"Email": "hedgehog@example.com",
 			"Profiles": [
 				"Market Data Team"
 			],
 			"Notifications": "on"
 		},
 		{
-			"Name": "Quentin",
-			"Email": "quentin.courtois@asia.bnpparibas.com",
+			"Name": "misterQ",
+			"Email": "misterQ@example.com",
 			"Profiles": [
 				"APS Agency Cash"
 			],

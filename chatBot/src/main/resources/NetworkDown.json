@@ -1,6 +1,6 @@
 {"issue type":"NetworkDown",
 "impacted flows":["Cash"],
-"hostname":"bnpphkserver01",
+"hostname":"abcphkserver01",
 "impacted systems":["FIXGateway"],
 "impacted clients":["BusinessWarrior"],
 "impacted markets":["HKEX","SGX"],
